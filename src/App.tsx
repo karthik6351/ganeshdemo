@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FamilyProvider, useFamily } from './context/FamilyContext';
 import { TreeCanvas } from './components/tree/TreeCanvas';
 import { MemberModal } from './components/ui/MemberModal';
 import { translations } from './utils/translations';
-import { Search, Menu, Download, Settings, Plus, Users } from 'lucide-react';
+import { Menu, Download, Plus, Users } from 'lucide-react';
 
 const AppContent = () => {
   const { settings, setLanguage, exportData, openModal } = useFamily();

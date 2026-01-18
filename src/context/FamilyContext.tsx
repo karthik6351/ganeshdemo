@@ -1,19 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppState, Member, Branch } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { api } from '../services/api';
 
-// Sample Data
+// Sample Data - used as fallback
 const INITIAL_DATA: AppState = {
-    members: [
-        {
-            id: 'root-1',
-            firstName: 'వెంకటేశ్వర్లు',
-            gender: 'male',
-            isAlive: false,
-            branchId: 'main',
-            notes: 'మూల పురుషుడు'
-        }
-    ],
+    members: [],
     branches: [{ id: 'main', name: 'ప్రధాన శాఖ' }],
     settings: { language: 'te', darkMode: false, locked: false }
 };
@@ -22,16 +14,18 @@ interface ModalState {
     isOpen: boolean;
     mode: 'add' | 'edit';
     data?: Partial<Member> | null;
-    parentId?: string; // For adding children
-    spouseId?: string; // For adding spouse
+    parentId?: string;
+    spouseId?: string;
 }
 
 interface FamilyContextType extends AppState {
-    addMember: (member: Omit<Member, 'id'>) => void;
-    updateMember: (id: string, data: Partial<Member>) => void;
-    deleteMember: (id: string) => void;
+    addMember: (member: Omit<Member, 'id'>) => Promise<void>;
+    updateMember: (id: string, data: Partial<Member>) => Promise<void>;
+    deleteMember: (id: string) => Promise<void>;
     setLanguage: (lang: 'te' | 'en') => void;
     exportData: () => void;
+    loading: boolean;
+    error: string | null;
 
     // Modal State
     modalState: ModalState;
@@ -42,10 +36,9 @@ interface FamilyContextType extends AppState {
 const FamilyContext = createContext<FamilyContextType | null>(null);
 
 export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, setState] = useState<AppState>(() => {
-        const saved = localStorage.getItem('gonugunta_tree_v1');
-        return saved ? JSON.parse(saved) : INITIAL_DATA;
-    });
+    const [state, setState] = useState<AppState>(INITIAL_DATA);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [modalState, setModalState] = useState<ModalState>({
         isOpen: false,
@@ -53,28 +46,64 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         data: null
     });
 
+    // Fetch members from API on mount
     useEffect(() => {
-        localStorage.setItem('gonugunta_tree_v1', JSON.stringify(state));
-    }, [state]);
+        const fetchMembers = async () => {
+            try {
+                setLoading(true);
+                const members = await api.getMembers();
+                setState(prev => ({ ...prev, members }));
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching members:', err);
+                setError('Failed to load family tree data');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const addMember = (data: Omit<Member, 'id'>) => {
-        const newMember = { ...data, id: uuidv4() };
-        setState(prev => ({ ...prev, members: [...prev.members, newMember] }));
+        fetchMembers();
+    }, []);
+
+    const addMember = async (data: Omit<Member, 'id'>) => {
+        try {
+            const newMember = { ...data, id: uuidv4() };
+            const createdMember = await api.createMember(newMember);
+            setState(prev => ({ ...prev, members: [...prev.members, createdMember] }));
+        } catch (err) {
+            console.error('Error adding member:', err);
+            alert('Failed to add member. Please try again.');
+            throw err;
+        }
     };
 
-    const updateMember = (id: string, data: Partial<Member>) => {
-        setState(prev => ({
-            ...prev,
-            members: prev.members.map(m => m.id === id ? { ...m, ...data } : m)
-        }));
+    const updateMember = async (id: string, data: Partial<Member>) => {
+        try {
+            const updatedMember = await api.updateMember(id, data);
+            setState(prev => ({
+                ...prev,
+                members: prev.members.map(m => m.id === id ? updatedMember : m)
+            }));
+        } catch (err) {
+            console.error('Error updating member:', err);
+            alert('Failed to update member. Please try again.');
+            throw err;
+        }
     };
 
-    const deleteMember = (id: string) => {
+    const deleteMember = async (id: string) => {
         if (!window.confirm("మీరు ఖచ్చితంగా తొలగించాలనుకుంటున్నారా?")) return;
-        setState(prev => ({
-            ...prev,
-            members: prev.members.filter(m => m.id !== id)
-        }));
+        try {
+            await api.deleteMember(id);
+            setState(prev => ({
+                ...prev,
+                members: prev.members.filter(m => m.id !== id)
+            }));
+        } catch (err) {
+            console.error('Error deleting member:', err);
+            alert('Failed to delete member. Please try again.');
+            throw err;
+        }
     };
 
     const setLanguage = (lang: 'te' | 'en') => {
@@ -107,6 +136,8 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             deleteMember,
             setLanguage,
             exportData,
+            loading,
+            error,
             modalState,
             openModal,
             closeModal
