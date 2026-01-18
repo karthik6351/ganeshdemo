@@ -258,5 +258,6 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                     </div>
                 )}
             </div>
-            );
+        </>
+    );
 };
