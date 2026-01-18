@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-texture: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* iOS Safe Area Support */
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+* {
+  /* Prevent text size adjustment on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html {
+  /* Smooth scrolling for better UX */
+  scroll-behavior: smooth;
+  /* Prevent pull-to-refresh on mobile browsers */
+  overscroll-behavior-y: contain;
+}
+
+body {
+  background-color: #fff7ed;
+  background-image: var(--bg-texture);
+  /* Enable momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+}
+
+/* Touch-friendly tap highlighting */
+* {
+  -webkit-tap-highlight-color: rgba(234, 88, 12, 0.1);
+}
+
+/* Custom Tree Connectors */
+.tree-line {
+  @apply absolute border-t-2 border-brand-300;
+}
+
+.tree-vertical {
+  @apply absolute border-l-2 border-brand-300;
+}
+
+/* Mobile-optimized scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  /* Touch action utilities */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}

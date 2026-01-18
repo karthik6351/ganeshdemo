@@ -1,0 +1,28 @@
+{
+    "app_title": "Gonugunta Family Tree",
+    "welcome": "Welcome to the Family Tree",
+    "actions": {
+        "add_member": "Add Member",
+        "edit": "Edit",
+        "delete": "Delete",
+        "save": "Save",
+        "cancel": "Cancel",
+        "export": "Export Tree",
+        "import": "Import Tree",
+        "search": "Search"
+    },
+    "labels": {
+        "name": "Name",
+        "dob": "Date of Birth",
+        "gender": "Gender",
+        "relationships": "Relationships",
+        "notes": "Notes",
+        "living": "Living",
+        "deceased": "Deceased"
+    },
+    "nav": {
+        "tree": "Tree View",
+        "list": "List View",
+        "settings": "Settings"
+    }
+}
