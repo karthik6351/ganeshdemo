@@ -3,115 +3,228 @@ import { FamilyProvider, useFamily } from './context/FamilyContext';
 import { TreeCanvas } from './components/tree/TreeCanvas';
 import { MemberModal } from './components/ui/MemberModal';
 import { translations } from './utils/translations';
-import { Menu, Download, Plus, Users } from 'lucide-react';
+import { Download, Plus, Users, X, Edit, Eye } from 'lucide-react';
 
 const AppContent = () => {
-  const { settings, setLanguage, exportData, openModal } = useFamily();
-  const t = translations[settings.language];
-  const [view, setView] = useState<'tree' | 'list'>('tree');
-  const [showMenu, setShowMenu] = useState(false);
+  const { exportData, openModal, settings, setLanguage } = useFamily();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false); // New: Edit mode state
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+    setDrawerOpen(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col font-sans">
       <MemberModal />
 
-      {/* HEADER - Mobile Optimized */}
+      {/* HEADER */}
       <header className="bg-gradient-to-r from-orange-600 to-red-700 text-white shadow-lg z-50 sticky top-0">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-            <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
-              <Users size={20} className="sm:w-6 sm:h-6" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight truncate">
+          {/* Logo - Clickable to open drawer */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex items-center space-x-2 sm:space-x-3 hover:opacity-90 transition-opacity touch-manipulation"
+          >
+            <img
+              src="/logo.jpg"
+              alt="Gonugunta Family Logo"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/80 shadow-lg"
+            />
+            <div className="text-left">
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
                 {translations['te'].appName}
               </h1>
-              <p className="text-[10px] sm:text-xs text-orange-100 opacity-90 truncate">Gonugunta Family Tree</p>
+              <p className="text-[10px] sm:text-xs text-orange-100 opacity-90">Gonugunta Family Tree</p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-            <button
-              onClick={() => setLanguage(settings.language === 'te' ? 'en' : 'te')}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-bold bg-white text-orange-700 rounded-full shadow-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Toggle language"
-            >
-              {settings.language === 'te' ? 'ENG' : 'తెలుగు'}
-            </button>
-            <button
-              className="p-2 sm:p-2.5 hover:bg-white/10 rounded-full touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
-              onClick={() => setShowMenu(!showMenu)}
-              aria-label="Menu"
-            >
-              <Menu size={20} className="sm:w-6 sm:h-6" />
-            </button>
-          </div>
+          {/* Mode indicator */}
+          {editMode && (
+            <div className="bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+              <Edit size={14} />
+              Edit Mode
+            </div>
+          )}
         </div>
       </header>
 
-      {/* TOOLBAR - Mobile Optimized */}
-      <div className="bg-white border-b border-orange-100 px-2 sm:px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto scrollbar-thin">
-        <div className="flex bg-gray-100 rounded-lg p-1 flex-shrink-0">
-          <button
-            onClick={() => setView('tree')}
-            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all touch-manipulation ${view === 'tree' ? 'bg-white shadow text-orange-600' : 'text-gray-500'}`}
-          >
-            Tree View
-          </button>
-          <button
-            onClick={() => setView('list')}
-            className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all touch-manipulation ${view === 'list' ? 'bg-white shadow text-orange-600' : 'text-gray-500'}`}
-          >
-            List View
-          </button>
-        </div>
+      {/* Side Drawer */}
+      {drawerOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
+            onClick={() => setDrawerOpen(false)}
+          />
 
-        <div className="flex space-x-2 flex-shrink-0">
-          <button
-            onClick={exportData}
-            className="flex items-center space-x-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-xs sm:text-sm hover:bg-green-100 touch-manipulation min-h-[44px]"
-            aria-label="Export data"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">{t.export}</span>
-          </button>
-        </div>
-      </div>
+          {/* Drawer */}
+          <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl z-[70]">
+            <div className="flex flex-col h-full">
+              {/* Drawer Header */}
+              <div className="bg-gradient-to-r from-orange-600 to-red-700 text-white p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src="/logo.jpg"
+                    alt="Logo"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
+                  />
+                  <div>
+                    <h2 className="font-bold text-lg">Menu</h2>
+                    <p className="text-xs opacity-90">వంశ వృక్షం</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 relative bg-orange-50/50">
-        {view === 'tree' ? (
-          <TreeCanvas />
-        ) : (
-          <div className="p-4 max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
-              {/* List View Implementation would go here */}
-              <p>List View is under construction. Please use Tree View to add members.</p>
+              {/* Drawer Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <nav className="space-y-2">
+                  {/* Toggle Edit/View Mode */}
+                  <button
+                    onClick={toggleEditMode}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-orange-50 transition-colors text-left group"
+                  >
+                    <div className={`p-2 rounded-lg group-hover:bg-orange-200 transition-colors ${editMode ? 'bg-orange-200' : 'bg-orange-100'}`}>
+                      {editMode ? <Eye className="w-5 h-5 text-orange-600" /> : <Edit className="w-5 h-5 text-orange-600" />}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {editMode ? 'View Mode' : 'Edit Data'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {editMode ? 'Switch to read-only view' : 'Add or modify family members'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Tree View */}
+                  <button
+                    onClick={() => setDrawerOpen(false)}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-orange-50 transition-colors text-left group"
+                  >
+                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Tree View</p>
+                      <p className="text-xs text-gray-500">Visual family tree</p>
+                    </div>
+                  </button>
+
+                  {/* Export Data */}
+                  <button
+                    onClick={() => {
+                      exportData();
+                      setDrawerOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-orange-50 transition-colors text-left group"
+                  >
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                      <Download className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Export Data</p>
+                      <p className="text-xs text-gray-500">Download family tree backup</p>
+                    </div>
+                  </button>
+
+                  {/* Language Switcher */}
+                  <div className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200">
+                    <p className="font-medium text-gray-900 mb-2 text-sm">Language / భాష</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setLanguage('en');
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settings.language === 'en'
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                      >
+                        English
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLanguage('te');
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settings.language === 'te'
+                            ? 'bg-orange-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                      >
+                        తెలుగు
+                      </button>
+                    </div>
+                  </div>
+                </nav>
+
+                {/* Mode Status */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-600 font-medium mb-1">Current Mode:</p>
+                  <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    {editMode ? (
+                      <><Edit size={16} className="text-orange-600" /> Edit Mode - Click members to edit</>
+                    ) : (
+                      <><Eye size={16} className="text-blue-600" /> View Only - Read-only access</>
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-hidden bg-orange-50">
+        <TreeCanvas editMode={editMode} />
       </main>
 
-      {/* FLOATING ACTION BUTTON - Mobile Optimized with Safe Area */}
+      {/* FAB - Add Member (Only visible in edit mode) */}
+      {editMode && (
+        <button
+          onClick={() => openModal('add')}
+          className="fixed w-14 h-14 sm:w-16 sm:h-16 bg-orange-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-orange-700 hover:scale-105 active:scale-95 transition-all z-40 touch-manipulation"
+          style={{
+            bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+            right: 'max(1.5rem, env(safe-area-inset-right))'
+          }}
+          aria-label="Add member"
+        >
+          <Plus size={28} />
+        </button>
+      )}
+
+      {/* Edit Mode Toggle FAB (Quick access) */}
       <button
-        onClick={() => openModal('add')}
-        className="fixed bottom-6 right-6 w-14 h-14 sm:w-16 sm:h-16 bg-orange-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-orange-700 hover:scale-105 active:scale-95 transition-all z-40 touch-manipulation"
+        onClick={toggleEditMode}
+        className={`fixed w-12 h-12 sm:w-14 sm:h-14 text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40 touch-manipulation ${editMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'
+          }`}
         style={{
-          bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+          bottom: 'max(5.5rem, calc(env(safe-area-inset-bottom) + 4rem))',
           right: 'max(1.5rem, env(safe-area-inset-right))'
         }}
-        aria-label="Add member"
+        aria-label="Toggle edit mode"
       >
-        <Plus size={28} className="sm:w-8 sm:h-8" />
+        {editMode ? <Eye size={22} /> : <Edit size={22} />}
       </button>
     </div>
   );
 };
 
-export default function App() {
+function App() {
   return (
     <FamilyProvider>
       <AppContent />
     </FamilyProvider>
   );
 }
+
+export default App;
