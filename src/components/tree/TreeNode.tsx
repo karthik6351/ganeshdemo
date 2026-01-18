@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Heart } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Member } from '../../types';
 import { cn } from '../../utils/cn';
 
@@ -21,7 +21,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({ member, onClick, selected, s
             className={cn(
                 "absolute flex flex-col items-center p-2 bg-white rounded-lg shadow-md border-2 transition-all cursor-pointer w-[120px] hover:scale-105 hover:shadow-lg",
                 selected ? "border-primary-500 ring-2 ring-primary-200" : "border-gray-200",
-                !member.isLiving && "grayscale bg-gray-50"
+                !member.isAlive && "grayscale bg-gray-50"
             )}
         >
             <div className="relative mb-2">
@@ -36,7 +36,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({ member, onClick, selected, s
                         <User size={24} />
                     </div>
                 )}
-                {!member.isLiving && (
+                {!member.isAlive && (
                     <span className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-[10px] px-1 rounded-full">RIP</span>
                 )}
             </div>

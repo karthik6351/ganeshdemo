@@ -1,24 +1,30 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Upload, Trash2, Globe, Moon } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { exportTreeToJSON, importTreeFromJSON } from '../utils/dataUtils';
-import { useFamilyStore } from '../store/familyStore';
-import { useUIStore } from '../store/uiStore';
+import { useFamily } from '../context/FamilyContext';
 
 export const SettingsPage = () => {
     const { t, i18n } = useTranslation();
-    const { resetTree } = useFamilyStore();
-    const { theme, toggleTheme, language, setLanguage } = useUIStore();
+    const { exportData, settings, setLanguage } = useFamily();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             try {
-                await importTreeFromJSON(file);
-                alert('Tree imported successfully!');
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target?.result as string);
+                        console.log('Imported data:', data);
+                        alert('Tree imported successfully! (Feature under development)');
+                    } catch {
+                        alert('Failed to import tree: Invalid format');
+                    }
+                };
+                reader.readAsText(file);
             } catch (error) {
                 alert('Failed to import tree: Invalid format');
             }
@@ -27,12 +33,13 @@ export const SettingsPage = () => {
 
     const handleClear = () => {
         if (window.confirm('Are you sure you want to delete all data? This cannot be undone.')) {
-            resetTree();
+            localStorage.clear();
+            window.location.reload();
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6 p-4">
             <h2 className="text-2xl font-bold text-gray-900">{t('nav.settings')}</h2>
 
             {/* Preferences */}
@@ -52,14 +59,14 @@ export const SettingsPage = () => {
                         </div>
                         <div className="flex gap-2">
                             <Button
-                                variant={language === 'te' ? 'primary' : 'outline'}
+                                variant={settings.language === 'te' ? 'primary' : 'outline'}
                                 size="sm"
                                 onClick={() => { i18n.changeLanguage('te'); setLanguage('te'); }}
                             >
                                 Telugu
                             </Button>
                             <Button
-                                variant={language === 'en' ? 'primary' : 'outline'}
+                                variant={settings.language === 'en' ? 'primary' : 'outline'}
                                 size="sm"
                                 onClick={() => { i18n.changeLanguage('en'); setLanguage('en'); }}
                             >
@@ -74,11 +81,11 @@ export const SettingsPage = () => {
                             <Moon className="w-5 h-5 text-gray-500" />
                             <div>
                                 <p className="font-medium text-gray-900">Theme</p>
-                                <p className="text-sm text-gray-500">Switch between light and dark mode</p>
+                                <p className="text-sm text-gray-500">Dark mode (coming soon)</p>
                             </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={toggleTheme}>
-                            {theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
+                        <Button variant="outline" size="sm" disabled>
+                            Coming Soon
                         </Button>
                     </div>
                 </CardContent>
@@ -91,18 +98,18 @@ export const SettingsPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-gray-500">
-                        Your family tree is stored locally on this device. You can export it to a file for backup or transfer.
+                        Your family tree is stored in MongoDB cloud. You can export it to a file for backup.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <Button onClick={exportTreeToJSON} className="flex-1">
+                        <Button onClick={exportData} className="flex-1">
                             <Download className="w-4 h-4 mr-2" />
-                            {t('actions.export')}
+                            Export Data
                         </Button>
 
                         <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="flex-1">
                             <Upload className="w-4 h-4 mr-2" />
-                            {t('actions.import')}
+                            Import Data
                         </Button>
                         <input
                             type="file"
@@ -116,16 +123,7 @@ export const SettingsPage = () => {
                     <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
                         <Button variant="danger" onClick={handleClear} className="w-full sm:w-auto">
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete All Data
-                        </Button>
-
-                        <Button variant="secondary" onClick={() => {
-                            const { generateSampleData } = require('../utils/sampleData'); // Dynamic import or just import top level
-                            const data = generateSampleData();
-                            useFamilyStore.getState().setTree(data);
-                            alert('Sample data generated!');
-                        }} className="w-full sm:w-auto">
-                            Generate Sample Data
+                            Clear Local Cache
                         </Button>
                     </div>
                 </CardContent>
