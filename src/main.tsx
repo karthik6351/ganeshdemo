@@ -3,10 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css' // Tailwind
 import './i18n' // I18n init
-import { registerSW } from 'virtual:pwa-register'
-
-// Auto-update service worker
-registerSW({ immediate: true })
+// registerSW({ immediate: true })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
