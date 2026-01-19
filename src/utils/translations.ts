@@ -1,6 +1,6 @@
 export const translations = {
     te: {
-        appName: "గొనుగుంట వారి ఫ్యామిలీ",
+        appName: "Gonugunta_Family",
         home: "హోమ్",
         members: "సభ్యులు",
         addMember: "సభ్యుని చేర్చు",
@@ -26,7 +26,7 @@ export const translations = {
         deceased: "మరణించారు"
     },
     en: {
-        appName: "Gonugunta Family Tree",
+        appName: "Gonugunta_Family",
         home: "Home",
         members: "Members",
         addMember: "Add Member",

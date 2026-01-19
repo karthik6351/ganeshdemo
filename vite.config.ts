@@ -28,9 +28,9 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: 'గోనుగుంట వారి వంశ వృక్షం',
-        short_name: 'వంశ వృక్షం',
-        description: 'Interactive family tree application for Gonugunta family - వంశ వృక్షం',
+        name: 'Gonugunta_Family',
+        short_name: 'Gonugunta_Family',
+        description: 'Interactive family tree application for Gonugunta family',
         theme_color: '#ea580c',
         background_color: '#fff7ed',
         display: 'standalone',
@@ -40,15 +40,15 @@ export default defineConfig({
         categories: ['lifestyle', 'utilities'],
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'logo.jpg',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.jpg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           }
         ]
