@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useFamily } from '../../context/FamilyContext';
 import { Member } from '../../types';
-import { User, Plus, Edit } from 'lucide-react';
+import { User, Plus, Edit, Heart } from 'lucide-react';
 // import { translations } from '../../utils/translations';
 
 // Recursive Tree Node Component
 const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, editMode: boolean, onViewProfile?: (member: Member) => void }) => {
     const { members, openModal } = useFamily();
     // const t = translations[settings.language]; // unused for now in this scope
+
+    // Local state for the add menu (only one active at a time could be handled by context or global state, but local here works per node if careful, 
+    // actually purely local state inside recursion might be tricky if we want to close others. 
+    // Let's use a simple approach: The menu is part of the render. We can't easily lift state without context. 
+    // BUT we can use a useState at the TreeCanvas level? No, recursion makes that hard.
+    // Let's just use local state here. Collisions are rare.
+    const [showAddMenu, setShowAddMenu] = useState(false);
 
     const member = members.find(m => m.id === memberId);
     if (!member) return null;
@@ -22,13 +29,35 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
     // Consistency: Always show structure as if editable (User Request: "same ui for both")
     const showAddOptions = true;
 
+    // Handle Adding Child (Intelligent Parent Linking)
+    const handleAddChild = () => {
+        const props: any = {};
+        if (member.gender === 'male') {
+            props.fatherId = member.id;
+            if (spouse) props.motherId = spouse.id;
+        } else {
+            props.motherId = member.id;
+            if (spouse) props.fatherId = spouse.id;
+        }
+        openModal('add', props);
+        setShowAddMenu(false);
+    };
+
+    const handleAddSpouse = () => {
+        openModal('add', {
+            spouseId: memberId,
+            gender: member.gender === 'male' ? 'female' : 'male'
+        });
+        setShowAddMenu(false);
+    };
+
     return (
         <div className="flex flex-col items-center">
             {/* Parent + Spouse Row */}
             <div className="flex items-center relative z-10 mb-12">
                 <MemberCard member={member} editMode={editMode} onViewProfile={onViewProfile} />
 
-                {/* Connector to Spouse or Add Spouse Button */}
+                {/* Connector to Spouse or Add Spouse/Child Button */}
                 {(spouse || showAddOptions) && (
                     <div className="flex items-center -ml-2 -mr-2 z-0 relative">
                         {/* Line part 1 */}
@@ -41,16 +70,54 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                                     <Plus size={16} className="text-white" />
                                 </div>
                             ) : (
-                                <button
-                                    onClick={() => openModal('add', {
-                                        spouseId: memberId,
-                                        gender: member.gender === 'male' ? 'female' : 'male'
-                                    })}
-                                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-pink-100 text-slate-400 hover:text-pink-500 border-2 border-white shadow-md flex items-center justify-center transition-all hover:scale-110"
-                                    title="Add Spouse"
-                                >
-                                    <Plus size={16} />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowAddMenu(!showAddMenu)}
+                                        className="w-10 h-10 rounded-full bg-pink-500 hover:bg-pink-600 text-white border-2 border-white shadow-md flex items-center justify-center transition-all hover:scale-110 z-20 relative"
+                                        title="Add Family Member"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+
+                                    {/* Action Menu */}
+                                    {showAddMenu && (
+                                        <>
+                                            {/* Backdrop to close */}
+                                            <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
+
+                                            {/* Menu */}
+                                            <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl border border-gray-100 p-2 flex flex-col gap-1 w-48 z-30 animate-in fade-in zoom-in duration-200">
+                                                <div className="text-xs font-semibold text-gray-400 px-2 py-1 uppercase tracking-wider">Add to {member.firstName}</div>
+
+                                                <button
+                                                    onClick={handleAddSpouse}
+                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-pink-50 text-slate-700 hover:text-pink-600 transition-colors text-left"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-500">
+                                                        <Heart size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-sm font-bold">Add Spouse</span>
+                                                        <span className="block text-[10px] text-gray-400">Connects beside</span>
+                                                    </div>
+                                                </button>
+
+                                                <button
+                                                    onClick={handleAddChild}
+                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 text-slate-700 hover:text-blue-600 transition-colors text-left"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                                        <User size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-sm font-bold">Add Child</span>
+                                                        <span className="block text-[10px] text-gray-400">Connects below</span>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -120,7 +187,10 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                     );
                 })}
 
-                {/* Add Child Ghost Card */}
+                {/* Add Child Ghost Card - Kept for flexibility, but maybe user wants ONLY the plus button? 
+                   User said "when we select child it ads the child profile below". 
+                   Let's keep the Ghost Card as a "Quick Add" for specific child slot, but the Plus button is the main requested feature.
+                */}
                 {showAddOptions && (
                     <div className="flex flex-col items-center relative">
                         <div className="absolute top-[-2rem] left-0 right-0 h-[2rem] pointer-events-none">
@@ -132,7 +202,8 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
 
                         <button
                             onClick={() => openModal('add', {
-                                [member.gender === 'female' ? 'motherId' : 'fatherId']: member.id
+                                [member.gender === 'female' ? 'motherId' : 'fatherId']: member.id,
+                                [member.gender === 'female' ? 'fatherId' : 'motherId']: spouse?.id // Try to link both
                             })}
                             className="w-[140px] h-[160px] rounded-[2rem] border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50 hover:bg-blue-50 flex flex-col items-center justify-center gap-3 transition-all group"
                         >
@@ -294,10 +365,7 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                 }}
             />
 
-            {/* Watermark - increased opacity and removed grayscale for visibility */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
-                <img src="/logo.jpg" alt="Family Tree Watermark" className="w-[500px] h-[500px] object-contain" />
-            </div>
+
 
             <div className="relative z-10 w-full h-full">
                 <TransformWrapper
