@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useFamily } from '../../context/FamilyContext';
 import { Member } from '../../types';
-import { User, Plus, Edit, Eye, ChevronDown } from 'lucide-react';
+import { User, Plus, Edit, Eye, Heart } from 'lucide-react';
 import { translations } from '../../utils/translations';
-
 
 // Recursive Tree Node Component
 const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, editMode: boolean, onViewProfile?: (member: Member) => void }) => {
@@ -21,90 +20,126 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
     const spouse = member.spouseId ? members.find(m => m.id === member.spouseId) : null;
 
     return (
-        <div className="flex flex-col items-center mx-2 sm:mx-4">
+        <div className="flex flex-col items-center mx-4">
             {/* Parent + Spouse Row */}
-            <div className="flex items-center space-x-1 sm:space-x-2 relative z-10 mb-6 sm:mb-8">
+            <div className="flex items-center space-x-4 relative z-10 mb-8">
                 <MemberCard member={member} editMode={editMode} onViewProfile={onViewProfile} />
 
                 {spouse && (
-                    <div className="flex items-center">
-                        <div className="w-3 sm:w-4 h-1 bg-gradient-to-r from-pink-400 to-red-400 rounded-l-full" />
-                        <div className="bg-white/80 backdrop-blur-sm p-0.5 rounded-full border border-pink-200 shadow-sm z-10">
-                            <span className="text-[10px] sm:text-xs">❤️</span>
+                    <div className="flex items-center relative">
+                        {/* Connecting Line */}
+                        <div className="w-8 h-0.5 bg-rose-300 absolute left-[-1rem] right-[-1rem] -z-10" />
+                        <div className="w-6 h-6 bg-white rounded-full border border-rose-200 flex items-center justify-center shadow-sm z-10 transition-transform hover:scale-125">
+                            <Heart size={12} className="text-rose-500 fill-rose-500" />
                         </div>
-                        <div className="w-3 sm:w-4 h-1 bg-gradient-to-r from-red-400 to-pink-400 rounded-r-full" />
                         <MemberCard member={spouse} editMode={editMode} onViewProfile={onViewProfile} />
                     </div>
                 )}
 
-                {/* Add Spouse Button - only in edit mode */}
+                {/* Add Spouse Button */}
                 {editMode && !spouse && (
                     <button
                         onClick={() => openModal('add', { spouseId: memberId })}
-                        className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-400 to-pink-600 hover:from-pink-500 hover:to-pink-700 rounded-full flex items-center justify-center text-white transition-all shadow-lg hover:shadow-pink-500/50 hover:scale-110 ml-2"
-                        aria-label="Add spouse"
+                        className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center hover:bg-rose-100 transition-colors shadow-sm ml-[-1rem] z-20"
+                        title={t.spouse}
                     >
-                        <Plus size={18} className="sm:w-5 sm:h-5" />
+                        <Plus size={16} />
                     </button>
                 )}
             </div>
 
-            {/* Connector Line to Children */}
+            {/* Children Connector Logic */}
             {children.length > 0 && (
-                <div className="flex flex-col items-center -mt-2 sm:-mt-4 relative z-0">
-                    <div className="w-1 h-6 sm:h-8 bg-gradient-to-b from-purple-400 via-blue-400 to-purple-400 rounded-t-full shadow-sm" />
-                    <ChevronDown size={16} className="text-purple-400 -mt-1 drop-shadow-sm" strokeWidth={2.5} />
+                <div className="flex flex-col items-center -mt-8 mb-4 w-full relative">
+                    {/* Vertical Line from Parent (goes down from middle of parent card or spouse-pair center) */}
+                    {/* If spouse exists, the center is the heart. If not, it's the member card. 
+                        Actually, flex-col centers `TreeNode`. The `Parent+Spouse` row is centered.
+                        So a simple vertical line works.
+                    */}
+                    <div className="w-0.5 h-8 bg-gray-300" />
                 </div>
             )}
 
             {/* Children Row */}
             {children.length > 0 && (
-                <div className="flex items-start mt-2 sm:mt-4">
+                <div className="flex justify-center items-start pt-4 relative">
+                    {/* Horizontal Connector Line Container */}
+                    {/* We draw a line from the center of the first child to the center of the last child. */}
+                    {children.length > 1 && (
+                        <div className="absolute top-0 left-0 right-0 h-4">
+                            {/* This line needs to be limited. A simple absolute div with left/right adjustments works if we knew widths. 
+                                Instead, we can use the technique where each child draws its share of the connector.
+                            */}
+                        </div>
+                    )}
+
                     {children.map((child, index) => (
-                        <div key={child.id} className="relative">
-                            {index > 0 && <div className="absolute -left-2 sm:-left-4 top-0 w-2 sm:w-4 h-1 bg-gradient-to-r from-blue-300 to-purple-300 rounded-full shadow-sm" />}
+                        <div key={child.id} className="flex flex-col items-center relative px-4">
+                            {/* Horizontal Connector Line logic per child */}
+                            {children.length > 1 && (
+                                <>
+                                    {/* Line to Left (if not first) */}
+                                    {index > 0 && (
+                                        <div className="absolute top-[-1rem] left-0 w-1/2 h-0.5 bg-gray-300" />
+                                    )}
+                                    {/* Line to Right (if not last) */}
+                                    {index < children.length - 1 && (
+                                        <div className="absolute top-[-1rem] right-0 w-1/2 h-0.5 bg-gray-300" />
+                                    )}
+                                </>
+                            )}
+
+                            {/* Vertical Connector to Child Card */}
+                            {/* Goes from the horizontal line (top -1rem) down to the child (0). height needs to be 1rem + extra space */}
+                            <div className="w-0.5 h-6 bg-gray-300 -mt-4 mb-2" />
+
                             <TreeNode memberId={child.id} editMode={editMode} onViewProfile={onViewProfile} />
                         </div>
                     ))}
 
-                    {/* Add Child Button - only in edit mode */}
+                    {/* Add Child Button */}
                     {editMode && (
-                        <button
-                            onClick={() => openModal('add', { fatherId: memberId })}
-                            className="ml-2 sm:ml-4 w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 rounded-2xl flex items-center justify-center text-blue-600 transition-all border-2 border-dashed border-blue-400 hover:border-purple-400 shadow-lg hover:shadow-xl hover:scale-105"
-                            aria-label="Add child"
-                        >
-                            <Plus size={24} className="sm:w-7 sm:h-7" />
-                        </button>
+                        <div className="relative px-4 flex flex-col items-center">
+                            {children.length > 0 && <div className="absolute top-[-1rem] left-0 w-1/2 h-0.5 bg-gray-300" />}
+                            <div className="w-0.5 h-6 bg-gray-300 -mt-4 mb-2" />
+                            <button
+                                onClick={() => openModal('add', { fatherId: memberId })}
+                                className="w-10 h-10 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-400 hover:bg-green-50 transition-all shadow-sm bg-white"
+                                title={t.addMember}
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
                     )}
                 </div>
             )}
 
-            {/* Add First Child Button (if no children) - only in edit mode */}
+            {/* Add First Child Button (if no children) */}
             {editMode && children.length === 0 && (
-                <button
-                    onClick={() => openModal('add', { fatherId: memberId })}
-                    className="mt-3 sm:mt-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-full text-white text-xs sm:text-sm font-semibold transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-1.5"
-                >
-                    <Plus size={14} className="sm:w-4 sm:h-4" />
-                    {t.addMember}
-                </button>
+                <div className="flex flex-col items-center">
+                    <div className="w-0.5 h-6 bg-gray-200" />
+                    <button
+                        onClick={() => openModal('add', { fatherId: memberId })}
+                        className="px-4 py-1.5 rounded-full bg-green-50 text-green-600 border border-green-200 text-xs font-semibold hover:bg-green-100 transition-colors shadow-sm flex items-center gap-1.5"
+                    >
+                        <Plus size={14} /> {t.addMember}
+                    </button>
+                </div>
             )}
         </div>
     );
 };
 
+// Premium Member Card Component
 const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editMode: boolean, onViewProfile?: (member: Member) => void }) => {
     const { openModal } = useFamily();
 
-    // Premium gradient colors based on gender
-    const gradientColors = member.gender === 'male'
-        ? 'from-blue-400 via-blue-500 to-purple-500'
-        : 'from-pink-400 via-pink-500 to-orange-400';
+    const isMale = member.gender === 'male';
 
-    const glowColor = member.gender === 'male'
-        ? 'shadow-blue-500/50'
-        : 'shadow-pink-500/50';
+    // Aesthetic choices for cards
+    const borderColor = isMale ? 'group-hover:border-blue-300' : 'group-hover:border-pink-300';
+    const ringColor = isMale ? 'ring-blue-50' : 'ring-pink-50';
+    const iconColor = isMale ? 'text-blue-400' : 'text-pink-400';
 
     const handleClick = () => {
         if (editMode) {
@@ -116,76 +151,48 @@ const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editM
 
     return (
         <div
-            className={`
-                relative group flex flex-col items-center justify-center 
-                w-24 sm:w-32 p-2 sm:p-3 rounded-2xl sm:rounded-3xl
-                backdrop-blur-lg bg-white/80 dark:bg-gray-800/80
-                border border-white/20 dark:border-gray-700/20
-                shadow-xl hover:shadow-2xl ${glowColor}
-                transition-all duration-300 ease-out
-                hover:scale-110 hover:-translate-y-2
-                active:scale-95
-                cursor-pointer touch-manipulation
-                ${!member.isAlive ? 'grayscale opacity-75' : ''}
-                before:absolute before:inset-0 before:rounded-2xl sm:before:rounded-3xl
-                before:bg-gradient-to-br ${gradientColors}
-                before:opacity-0 hover:before:opacity-20
-                before:transition-opacity before:duration-300
-            `}
             onClick={handleClick}
-            style={{
-                animation: 'fadeInUp 0.6s ease-out backwards',
-                animationDelay: `${Math.random() * 0.3}s`
-            }}
+            className={`
+                group relative flex flex-col items-center 
+                w-32 py-4 px-2 rounded-2xl bg-white 
+                border-2 border-slate-100 ${borderColor}
+                shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] 
+                hover:shadow-[0_8px_20px_-4px_rgba(0,0,0,0.1)]
+                hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer
+                ${!member.isAlive ? 'grayscale opacity-75' : ''}
+            `}
         >
-            {/* Animated gradient border glow */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-75 blur-sm transition-all duration-300" />
+            {editMode && (
+                <div className="absolute -top-2 -right-2 bg-slate-800 text-white p-1.5 rounded-full shadow-lg z-20 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                    <Edit size={12} />
+                </div>
+            )}
 
-            {/* Card content */}
-            <div className="relative z-10 w-full flex flex-col items-center">
-                {/* Edit Badge - only visible in edit mode */}
-                {editMode && (
-                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Edit className="w-3 h-3 text-white" />
+            {/* Profile Image Container */}
+            <div className={`relative w-16 h-16 mb-3 rounded-full padding-1 ring-4 ${ringColor} bg-white transition-all group-hover:ring-8`}>
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-50 flex items-center justify-center border border-slate-100">
+                    {member.photoUrl ? (
+                        <img src={member.photoUrl} alt={member.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                        <User size={32} className={`${iconColor} opacity-50`} />
+                    )}
+                </div>
+                {!member.isAlive && (
+                    <div className="absolute bottom-0 right-0 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-wider shadow-sm border border-white">
+                        RIP
                     </div>
                 )}
+            </div>
 
-                {/* Profile Photo with gradient ring */}
-                <div className="relative mb-2">
-                    {/* Gradient ring */}
-                    <div className={`absolute -inset-1 bg-gradient-to-r ${gradientColors} rounded-full opacity-75 blur-sm group-hover:blur-md transition-all`} />
-
-                    {/* Photo */}
-                    <div className="relative">
-                        {member.photoUrl ? (
-                            <img
-                                src={member.photoUrl}
-                                alt={member.firstName}
-                                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover ring-2 ring-white/50 shadow-lg"
-                            />
-                        ) : (
-                            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br ${gradientColors} flex items-center justify-center ring-2 ring-white/50 shadow-lg`}>
-                                <User className="w-6 h-6 sm:w-8 sm:h-8 text-white drop-shadow-lg" />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Name with premium typography */}
-                <p className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white text-center leading-tight truncate w-full px-1 drop-shadow-sm">
+            {/* Text Content */}
+            <div className="text-center w-full px-1">
+                <h3 className="text-sm font-bold text-slate-800 truncate leading-tight mb-0.5">
                     {member.firstName}
-                </p>
+                </h3>
                 {member.lastName && (
-                    <p className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 truncate w-full text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 truncate">
                         {member.lastName}
                     </p>
-                )}
-
-                {/* Status Badge */}
-                {!member.isAlive && (
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full shadow-lg font-semibold">
-                        ✝ RIP
-                    </div>
                 )}
             </div>
         </div>
@@ -195,7 +202,6 @@ const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editM
 export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
     const { members, loading } = useFamily();
     const [isMobile, setIsMobile] = useState(false);
-    // const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -204,75 +210,82 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full text-gray-500">
-                Loading family tree...
-            </div>
-        );
-    }
+    if (loading) return <div className="flex items-center justify-center h-full text-slate-400">Loading tree data...</div>;
 
     if (!members || members.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
-                <User size={48} className="mb-4 text-gray-300" />
-                <p className="text-center">No family members yet</p>
-                {editMode && <p className="text-sm text-center mt-2">Click the + button to add members</p>}
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                    <User size={32} className="text-slate-300" />
+                </div>
+                <p>No family members found</p>
+                {editMode && <p className="text-sm">Start by adding a member below</p>}
             </div>
         );
     }
 
-    // Find root nodes (no parents)
     const roots = members.filter(m => !m.fatherId && !m.motherId && !m.spouseId);
-    // If no clear root, take the first member
     const rootId = roots.length > 0 ? roots[0].id : members[0]?.id;
 
-    // const onViewProfile = (member: Member) => {
-    //     setSelectedMember(member);
-    // };
-
     return (
-        <>
-            {/* Member Profile Modal */}
+        <div className="w-full h-[calc(100vh-64px)] bg-slate-50 relative overflow-hidden font-sans">
+            {/* Professional Dot Grid Background */}
+            <div
+                className="absolute inset-0 opacity-[0.4] pointer-events-none"
+                style={{
+                    backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)',
+                    backgroundSize: '20px 20px'
+                }}
+            />
 
-            <div className="w-full h-[60vh] sm:h-[75vh] lg:h-[80vh] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 overflow-hidden border-t border-white/20 relative">
-                {/* Premium animated background overlay */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_50%)] animate-pulse" />
+            <TransformWrapper
+                initialScale={isMobile ? 0.6 : 0.9}
+                minScale={0.2}
+                maxScale={3}
+                centerOnInit
+                limitToBounds={false}
+                panning={{ velocityDisabled: false }}
+            >
+                {({ zoomIn, zoomOut, resetTransform }) => (
+                    <>
+                        {/* Floating Controls */}
+                        <div className="absolute bottom-8 right-6 flex flex-col gap-3 z-50">
+                            <button onClick={() => zoomIn()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
+                                <Plus size={24} />
+                            </button>
+                            <button onClick={() => zoomOut()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
+                                <div className="w-4 h-0.5 bg-current" />
+                            </button>
+                            <button onClick={() => resetTransform()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100 text-[10px] font-bold tracking-widest">
+                                FIT
+                            </button>
+                        </div>
 
-                <TransformWrapper
-                    initialScale={isMobile ? 0.7 : 1}
-                    minScale={0.3}
-                    maxScale={2.5}
-                    centerOnInit
-                    wheel={{ step: 0.1 }}
-                    pinch={{ step: 5 }}
-                    doubleClick={{ disabled: false, step: 0.7 }}
-                    panning={{ velocityDisabled: false }}
-                >
-                    {() => (
                         <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full flex items-center justify-center">
-                            <div className="p-10 sm:p-20 min-w-max">
+                            <div className="p-32 min-w-max">
                                 {rootId && <TreeNode memberId={rootId} editMode={editMode} onViewProfile={undefined} />}
                             </div>
                         </TransformComponent>
-                    )}
-                </TransformWrapper>
-
-                {/* Gesture Hint for Mobile with premium styling */}
-                {isMobile && (
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 backdrop-blur-lg bg-black/60 text-white text-xs px-4 py-2 rounded-full pointer-events-none shadow-xl border border-white/20">
-                        <span className="font-medium">👆 Pinch to zoom • Drag to pan</span>
-                    </div>
+                    </>
                 )}
+            </TransformWrapper>
 
-                {/* Mode Indicator with premium styling */}
-                {!editMode && (
-                    <div className="absolute top-4 left-4 backdrop-blur-lg bg-gradient-to-r from-blue-500/90 to-purple-500/90 text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 shadow-xl border border-white/20">
-                        <Eye size={14} />
-                        <span>View Mode</span>
-                    </div>
-                )}
+            {/* Mode Indicator */}
+            <div className="absolute top-6 left-6 z-50">
+                <div className={`
+                    backdrop-blur-md bg-white/80 border border-white/40 shadow-lg px-4 py-2 rounded-full 
+                    flex items-center gap-2.5 transition-all
+                    ${editMode ? 'ring-2 ring-amber-100' : ''}
+                `}>
+                    <div className={`
+                        w-2.5 h-2.5 rounded-full shadow-sm
+                        ${editMode ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}
+                    `} />
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+                        {editMode ? 'Editing' : 'Viewing'}
+                    </span>
+                </div>
             </div>
-        </>
+        </div>
     );
 };
