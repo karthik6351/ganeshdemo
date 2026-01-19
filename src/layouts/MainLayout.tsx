@@ -30,7 +30,8 @@ export const MainLayout = () => {
                 <div className="container mx-auto px-4 h-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {/* Logo/Title */}
-                        <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-full shadow-md object-cover border-2 border-primary-100" />
                             <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-secondary-500 bg-clip-text text-transparent">
                                 {t('app_title')}
                             </h1>
