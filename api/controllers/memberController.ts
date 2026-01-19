@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Member } from '../models/Member';
+import { Member } from '../models/Member.js';
 
 // Get all members
 export const getAllMembers = async (req: Request, res: Response) => {
