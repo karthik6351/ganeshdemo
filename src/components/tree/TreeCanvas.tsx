@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useFamily } from '../../context/FamilyContext';
 import { Member } from '../../types';
-import { User, Plus, Edit, Heart } from 'lucide-react';
+import { User, Plus, Edit } from 'lucide-react';
 // import { translations } from '../../utils/translations';
 
 // Recursive Tree Node Component
@@ -19,6 +19,9 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
     // Get spouse
     const spouse = member.spouseId ? members.find(m => m.id === member.spouseId) : null;
 
+    // Consistency: Always show structure as if editable (User Request: "same ui for both")
+    const showAddOptions = true;
+
     return (
         <div className="flex flex-col items-center">
             {/* Parent + Spouse Row */}
@@ -26,7 +29,7 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                 <MemberCard member={member} editMode={editMode} onViewProfile={onViewProfile} />
 
                 {/* Connector to Spouse or Add Spouse Button */}
-                {(spouse || editMode) && (
+                {(spouse || showAddOptions) && (
                     <div className="flex items-center -ml-2 -mr-2 z-0 relative">
                         {/* Line part 1 */}
                         <div className="w-8 h-1 bg-gradient-to-r from-blue-400 to-purple-400" />
@@ -62,24 +65,20 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
             </div>
 
             {/* Children Connector Logic */}
-            {(children.length > 0 || editMode) && (
+            {(children.length > 0 || showAddOptions) && (
                 <div className="flex flex-col items-center w-full relative">
                     {/* Vertical Line from Parents */}
                     <div className="absolute -top-12 left-1/2 -translate-x-1/2 h-12 w-0.5 bg-gradient-to-b from-purple-400 to-blue-400" />
 
                     {/* Top Horizontal Bar for Children */}
                     {/* Only show if multiple items (children + add button) */}
-                    {(children.length + (editMode ? 1 : 0)) > 1 && (
+                    {(children.length + (showAddOptions ? 1 : 0)) > 1 && (
                         <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-300 rounded-full mx-auto"
                             style={{
                                 width: `calc(100% - ${children.length === 0 ? '0px' : '160px'})`, // Approximate width adjustment
                                 // A better way is to rely on the padding of the container specific to the layout
                             }}
                         >
-                            {/* Instead of calculating width, we allow the lines to be drawn by the children themselves, 
-                                but for a clean continuous line, a shared div is often better. 
-                                Let's stick to the per-child line approach for responsiveness.
-                            */}
                         </div>
                     )}
                 </div>
@@ -88,7 +87,7 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
             {/* Children Row */}
             <div className="flex items-start justify-center gap-8 pt-8 relative">
                 {/* Horizontal Connector Line (Spanning all children) */}
-                {(children.length > 0 || editMode) && (
+                {(children.length > 0 || showAddOptions) && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-0.5 bg-transparent pointer-events-none">
                         {/* We will draw lines on individual items to connect to this phantom center line */}
                     </div>
@@ -96,7 +95,7 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
 
                 {children.map((child, index) => {
                     const isFirst = index === 0;
-                    const isLast = index === children.length - 1 && !editMode;
+                    const isLast = index === children.length - 1 && !showAddOptions;
 
                     return (
                         <div key={child.id} className="flex flex-col items-center relative">
@@ -107,18 +106,13 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
 
                                 {/* Horizontal line to connect to siblings */}
                                 {/* Right half */}
-                                {(!isLast || editMode) && (
+                                {(!isLast || showAddOptions) && (
                                     <div className="absolute top-0 right-0 w-1/2 h-0.5 bg-blue-300" />
                                 )}
                                 {/* Left half */}
                                 {!isFirst && (
                                     <div className="absolute top-0 left-0 w-1/2 h-0.5 bg-blue-300" />
                                 )}
-                                {/* Fix for single child cases? If single child, no horizontal lines needed? 
-                                    Actually if single child, we might still want to connect up.
-                                    The vertical line connects up. 
-                                    The horizontal lines are only for branching.
-                                */}
                             </div>
 
                             <TreeNode memberId={child.id} editMode={editMode} onViewProfile={onViewProfile} />
@@ -127,7 +121,7 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                 })}
 
                 {/* Add Child Ghost Card */}
-                {editMode && (
+                {showAddOptions && (
                     <div className="flex flex-col items-center relative">
                         <div className="absolute top-[-2rem] left-0 right-0 h-[2rem] pointer-events-none">
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-full bg-blue-300" />
@@ -281,7 +275,7 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                     <User size={32} className="text-slate-300" />
                 </div>
                 <p>No family members found</p>
-                {editMode && <p className="text-sm">Start by adding a member below</p>}
+                <p className="text-sm">Start by adding a member below</p>
             </div>
         );
     }
@@ -339,22 +333,8 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                 </TransformWrapper>
             </div>
 
-            {/* Mode Indicator */}
-            <div className="absolute top-6 left-6 z-50">
-                <div className={`
-                    backdrop-blur-md bg-white/80 border border-white/40 shadow-lg px-4 py-2 rounded-full 
-                    flex items-center gap-2.5 transition-all
-                    ${editMode ? 'ring-2 ring-amber-100' : ''}
-                `}>
-                    <div className={`
-                        w-2.5 h-2.5 rounded-full shadow-sm
-                        ${editMode ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}
-                    `} />
-                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">
-                        {editMode ? 'Editing' : 'Viewing'}
-                    </span>
-                </div>
-            </div>
+            {/* Mode Indicator - Removed for consistent UI */}
+
         </div>
     );
 };

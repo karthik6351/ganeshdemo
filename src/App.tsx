@@ -144,8 +144,8 @@ const AppContent = () => {
                           setLanguage('en');
                         }}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settings.language === 'en'
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                           }`}
                       >
                         English
@@ -155,8 +155,8 @@ const AppContent = () => {
                           setLanguage('te');
                         }}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${settings.language === 'te'
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                           }`}
                       >
                         తెలుగు
@@ -187,20 +187,18 @@ const AppContent = () => {
         <TreeCanvas editMode={editMode} />
       </main>
 
-      {/* FAB - Add Member (Only visible in edit mode) */}
-      {editMode && (
-        <button
-          onClick={() => openModal('add')}
-          className="fixed w-14 h-14 sm:w-16 sm:h-16 bg-orange-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-orange-700 hover:scale-105 active:scale-95 transition-all z-40 touch-manipulation"
-          style={{
-            bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-            right: 'max(1.5rem, env(safe-area-inset-right))'
-          }}
-          aria-label="Add member"
-        >
-          <Plus size={28} />
-        </button>
-      )}
+      {/* FAB - Add Member (Always visible) */}
+      <button
+        onClick={() => openModal('add')}
+        className="fixed w-14 h-14 sm:w-16 sm:h-16 bg-orange-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-orange-700 hover:scale-105 active:scale-95 transition-all z-40 touch-manipulation"
+        style={{
+          bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+          right: 'max(1.5rem, env(safe-area-inset-right))'
+        }}
+        aria-label="Add member"
+      >
+        <Plus size={28} />
+      </button>
 
       {/* Edit Mode Toggle FAB (Quick access) */}
       <button
