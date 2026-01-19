@@ -153,13 +153,32 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
 const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editMode: boolean, onViewProfile?: (member: Member) => void }) => {
     const { openModal } = useFamily();
     const isMale = member.gender === 'male';
+    const [photoUrl, setPhotoUrl] = useState<string | undefined>(member.photoUrl);
+
+    // Lazy load photo if missing (due to list optimization)
+    useEffect(() => {
+        if (!member.photoUrl && !photoUrl) {
+            // Fetch individual member to get photo
+            fetch(`/api/members/${member.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.photoUrl) {
+                        setPhotoUrl(data.photoUrl);
+                    }
+                })
+                .catch(err => console.error("Failed to load photo", err));
+        } else if (member.photoUrl) {
+            setPhotoUrl(member.photoUrl);
+        }
+    }, [member.id, member.photoUrl]);
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (editMode) {
-            openModal('edit', member);
+            // Pass the full data (with photo if loaded)
+            openModal('edit', { ...member, photoUrl: photoUrl || member.photoUrl });
         } else if (onViewProfile) {
-            onViewProfile(member);
+            onViewProfile({ ...member, photoUrl: photoUrl || member.photoUrl });
         }
     };
 
@@ -186,8 +205,8 @@ const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editM
                         box-content shadow-lg
                     `}>
                         <div className="w-full h-full rounded-full border-4 border-white bg-slate-100 overflow-hidden relative">
-                            {member.photoUrl ? (
-                                <img src={member.photoUrl} alt={member.firstName} className="w-full h-full object-cover" />
+                            {photoUrl ? (
+                                <img src={photoUrl} alt={member.firstName} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
                                     <User size={32} />
@@ -224,7 +243,7 @@ const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editM
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        onViewProfile(member);
+                        onViewProfile({ ...member, photoUrl: photoUrl || member.photoUrl });
                     }}
                     className="absolute bottom-4 -right-4 w-8 h-8 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 hover:bg-blue-700 z-20"
                 >

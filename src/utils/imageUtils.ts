@@ -1,8 +1,8 @@
 /**
- * Compresses an image file to be under a target size (default 4.7MB).
+ * Compresses an image file to be under a target size (default 4.5MB).
  * Returns the compressed image as a Base64 string.
  */
-export const compressImage = (file: File, targetSizeMB: number = 4.7): Promise<string> => {
+export const compressImage = (file: File, targetSizeMB: number = 4.5): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);

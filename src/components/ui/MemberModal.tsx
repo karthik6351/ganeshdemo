@@ -95,10 +95,10 @@ export const MemberModal = () => {
                                     setIsLoadingImage(true);
                                     try {
                                         let resultUrl = '';
-                                        // Check file size (limit to 5MB, if > 5MB, compress to ~4.7MB)
-                                        if (file.size > 5 * 1024 * 1024) {
+                                        // Check file size (limit to 4.5MB, if > 4.5MB, compress to ~4.5MB)
+                                        if (file.size > 4.5 * 1024 * 1024) {
                                             // Compress
-                                            resultUrl = await compressImage(file, 4.7);
+                                            resultUrl = await compressImage(file, 4.5);
                                         } else {
                                             // Read normally
                                             resultUrl = await new Promise((resolve) => {

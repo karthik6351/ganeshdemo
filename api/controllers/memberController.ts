@@ -4,7 +4,7 @@ import { Member } from '../models/Member.js';
 // Get all members
 export const getAllMembers = async (req: Request, res: Response) => {
     try {
-        const members = await Member.find().sort({ createdAt: 1 });
+        const members = await Member.find().select('-photoUrl').sort({ createdAt: 1 });
         res.json(members);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching members', error });
