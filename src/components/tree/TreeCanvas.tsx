@@ -4,7 +4,7 @@ import { useFamily } from '../../context/FamilyContext';
 import { Member } from '../../types';
 import { User, Plus, Edit, Eye, ChevronDown } from 'lucide-react';
 import { translations } from '../../utils/translations';
-import { MemberProfile } from '../ui/MemberProfile';
+
 
 // Recursive Tree Node Component
 const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, editMode: boolean, onViewProfile?: (member: Member) => void }) => {
@@ -195,7 +195,7 @@ const MemberCard = ({ member, editMode, onViewProfile }: { member: Member, editM
 export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
     const { members, loading } = useFamily();
     const [isMobile, setIsMobile] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+    // const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -227,19 +227,13 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
     // If no clear root, take the first member
     const rootId = roots.length > 0 ? roots[0].id : members[0]?.id;
 
-    const onViewProfile = (member: Member) => {
-        setSelectedMember(member);
-    };
+    // const onViewProfile = (member: Member) => {
+    //     setSelectedMember(member);
+    // };
 
     return (
         <>
             {/* Member Profile Modal */}
-            {selectedMember && (
-                <MemberProfile
-                    member={selectedMember}
-                    onClose={() => setSelectedMember(null)}
-                />
-            )}
 
             <div className="w-full h-[60vh] sm:h-[75vh] lg:h-[80vh] bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 overflow-hidden border-t border-white/20 relative">
                 {/* Premium animated background overlay */}
@@ -258,7 +252,7 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                     {() => (
                         <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full flex items-center justify-center">
                             <div className="p-10 sm:p-20 min-w-max">
-                                {rootId && <TreeNode memberId={rootId} editMode={editMode} onViewProfile={onViewProfile} />}
+                                {rootId && <TreeNode memberId={rootId} editMode={editMode} onViewProfile={undefined} />}
                             </div>
                         </TransformComponent>
                     )}

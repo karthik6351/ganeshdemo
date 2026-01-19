@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Menu, Moon, Sun, Languages } from 'lucide-react';
+import { Moon, Sun, Languages } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useUIStore } from '../store/uiStore';
 import { Link, Outlet, useLocation } from 'react-router-dom';
