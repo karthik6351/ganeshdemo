@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useFamily } from '../../context/FamilyContext';
 import { Member } from '../../types';
-import { User, Plus, Edit, Eye, Heart } from 'lucide-react';
+import { User, Plus, Edit, Heart } from 'lucide-react';
 import { translations } from '../../utils/translations';
 
 // Recursive Tree Node Component
