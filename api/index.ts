@@ -12,28 +12,19 @@ const app = express();
 
 // Middleware
 app.use((req, res, next) => {
-    console.log(`[API] ${req.method} ${req.url}`);
+    console.log(`[API Debug] Method:${req.method} URL:${req.url} OriginalURL:${req.originalUrl} BaseURL:${req.baseUrl}`);
     next();
 });
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-// Note: In serverless, we should arguably connect per request or cache the connection.
-// mongoose.connect manages connection buffering, so calling it here is generally okay,
-// but let's ensure we call it.
 connectDB();
 
 // Routes
-// Vercel handles /api routing via vercel.json, but if we mount at /api, 
-// we need to be careful about the path. 
-// If vercel.json rewrites /api/(.*) to /api/index.js, 
-// express receives the request.
-// The base path might be stripped or not depending on configuration.
-// Usually for Vercel Express, handled routes should be relative to the mount point or root.
-// Let's assume /api prefix is stripped or we handle /api path explicitly.
+// Mount at both locations to handle Vercel path rewriting variations
 app.use('/api/members', memberRoutes);
+app.use('/members', memberRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
