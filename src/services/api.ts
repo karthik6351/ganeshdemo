@@ -1,6 +1,6 @@
 import { Member } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 export const api = {
     // Get all members
@@ -18,7 +18,7 @@ export const api = {
     },
 
     // Create member
-    async createMember(member: Omit<Member, 'id'>): Promise<Member> {
+    async createMember(member: Member): Promise<Member> {
         const response = await fetch(`${API_URL}/members`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

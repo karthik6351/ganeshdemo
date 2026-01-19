@@ -19,9 +19,10 @@ const memberSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Indexes for faster queries (removed duplicate id index)
+// Indexes for faster queries
 memberSchema.index({ fatherId: 1 });
 memberSchema.index({ motherId: 1 });
 memberSchema.index({ spouseId: 1 });
 
-export const Member = mongoose.model('Member', memberSchema);
+// Check if model exists before compiling to avoid OverwriteModelError in hot reload/serverless
+export const Member = mongoose.models.Member || mongoose.model('Member', memberSchema);

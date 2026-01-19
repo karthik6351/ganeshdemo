@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AppState, Member, Branch } from '../types';
+import { AppState, Member } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { api } from '../services/api';
+import { generateSampleData } from '../utils/sampleData';
 
-// Sample Data - used as fallback
+// Initial data structure
 const INITIAL_DATA: AppState = {
     members: [],
-    branches: [{ id: 'main', name: 'ప్రధాన శాఖ' }],
+    branches: [{ id: 'main', name: 'ప్రధాన శాఖ', description: 'Main family branch' }],
     settings: { language: 'te', darkMode: false, locked: false }
 };
 
@@ -24,6 +25,7 @@ interface FamilyContextType extends AppState {
     deleteMember: (id: string) => Promise<void>;
     setLanguage: (lang: 'te' | 'en') => void;
     exportData: () => void;
+    importData: (jsonString: string) => Promise<void>;
     loading: boolean;
     error: string | null;
 
@@ -46,17 +48,33 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         data: null
     });
 
-    // Fetch members from API on mount
+    // Fetch members from MongoDB on mount
     useEffect(() => {
         const fetchMembers = async () => {
             try {
                 setLoading(true);
-                const members = await api.getMembers();
-                setState(prev => ({ ...prev, members }));
                 setError(null);
+                const members = await api.getMembers();
+
+                // If no members exist, initialize with sample data
+                if (members.length === 0) {
+                    console.log('No members found, initializing with sample data...');
+                    const sampleData = generateSampleData();
+
+                    // Create all sample members in MongoDB
+                    for (const member of sampleData.members) {
+                        await api.createMember(member);
+                    }
+
+                    // Fetch again to get the created members
+                    const newMembers = await api.getMembers();
+                    setState(prev => ({ ...prev, members: newMembers }));
+                } else {
+                    setState(prev => ({ ...prev, members }));
+                }
             } catch (err) {
                 console.error('Error fetching members:', err);
-                setError('Failed to load family tree data');
+                setError('Failed to load family tree data. Make sure MongoDB server is running.');
             } finally {
                 setLoading(false);
             }
@@ -67,12 +85,17 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const addMember = async (data: Omit<Member, 'id'>) => {
         try {
-            const newMember = { ...data, id: uuidv4() };
+            const newMember: Member = {
+                ...data,
+                id: uuidv4(),
+                isAlive: data.isAlive ?? true
+            } as Member;
+
             const createdMember = await api.createMember(newMember);
             setState(prev => ({ ...prev, members: [...prev.members, createdMember] }));
         } catch (err) {
             console.error('Error adding member:', err);
-            alert('Failed to add member. Please try again.');
+            setError('Failed to add member');
             throw err;
         }
     };
@@ -86,7 +109,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }));
         } catch (err) {
             console.error('Error updating member:', err);
-            alert('Failed to update member. Please try again.');
+            setError('Failed to update member');
             throw err;
         }
     };
@@ -101,7 +124,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }));
         } catch (err) {
             console.error('Error deleting member:', err);
-            alert('Failed to delete member. Please try again.');
+            setError('Failed to delete member');
             throw err;
         }
     };
@@ -111,13 +134,45 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     const exportData = () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+        const dataStr = JSON.stringify(state, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
         const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "gonugunta_tree_backup.json");
+        downloadAnchorNode.setAttribute("href", url);
+        downloadAnchorNode.setAttribute("download", `gonugunta_tree_backup_${Date.now()}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
+        URL.revokeObjectURL(url);
+    };
+
+    const importData = async (jsonString: string) => {
+        try {
+            const imported = JSON.parse(jsonString) as Partial<AppState>;
+
+            if (imported.members && Array.isArray(imported.members)) {
+                // Clear existing members and add imported ones
+                const currentMembers = await api.getMembers();
+
+                // Delete all existing members
+                for (const member of currentMembers) {
+                    await api.deleteMember(member.id);
+                }
+
+                // Add imported members
+                for (const member of imported.members) {
+                    await api.createMember(member);
+                }
+
+                // Refresh state
+                const newMembers = await api.getMembers();
+                setState(prev => ({ ...prev, members: newMembers }));
+            }
+        } catch (err) {
+            console.error('Error importing data:', err);
+            setError('Failed to import data. Please check the file format.');
+            throw err;
+        }
     };
 
     const openModal = (mode: 'add' | 'edit', data: Partial<Member> | null = null, parentId?: string, spouseId?: string) => {
@@ -136,6 +191,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             deleteMember,
             setLanguage,
             exportData,
+            importData,
             loading,
             error,
             modalState,

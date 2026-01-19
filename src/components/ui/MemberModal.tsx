@@ -21,16 +21,14 @@ export const MemberModal = () => {
             if (modalState.mode === 'edit' && modalState.data) {
                 setFormData(modalState.data);
             } else {
-                // Reset for add mode
+                // Reset for add mode - preserve relationship data from modalState.data
                 setFormData({
                     firstName: '',
                     lastName: '',
                     gender: 'male',
                     isAlive: true,
                     branchId: 'main',
-                    fatherId: modalState.parentId, // Pre-fill if adding child
-                    motherId: modalState.parentId ? undefined : undefined, // Logic handled in submit or context
-                    spouseId: modalState.spouseId
+                    ...modalState.data  // This preserves fatherId, motherId, or spouseId from openModal() call
                 });
             }
         }
@@ -61,29 +59,50 @@ export const MemberModal = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {/* Photo Upload (Mock) */}
+                    {/* Photo Upload */}
                     <div className="flex justify-center mb-6">
-                        <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 relative overflow-hidden group">
+                        <div
+                            className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 relative overflow-hidden group"
+                            onClick={() => {
+                                // Trigger the hidden file input
+                                document.getElementById('photo-upload-input')?.click();
+                            }}
+                        >
                             {formData.photoUrl ? (
                                 <img src={formData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
                             ) : (
                                 <Upload className="text-gray-400" />
                             )}
-                            <input
-                                type="text"
-                                placeholder="Photo URL"
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                onChange={(e) => {
-                                    const url = prompt("Enter Photo URL:");
-                                    if (url) setFormData({ ...formData, photoUrl: url });
-                                }}
-                            />
                         </div>
+                        {/* Hidden file input */}
+                        <input
+                            id="photo-upload-input"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    // Check file size (limit to 5MB)
+                                    if (file.size > 5 * 1024 * 1024) {
+                                        alert('Image size should be less than 5MB');
+                                        return;
+                                    }
+
+                                    // Read the file and convert to base64
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                        setFormData({ ...formData, photoUrl: reader.result as string });
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
+                        />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">{t.member} Name *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                             <input
                                 required
                                 type="text"
@@ -105,29 +124,16 @@ export const MemberModal = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">{t.male}/{t.female}</label>
-                            <select
-                                value={formData.gender}
-                                onChange={e => setFormData({ ...formData, gender: e.target.value as Gender })}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                            >
-                                <option value="male">{t.male}</option>
-                                <option value="female">{t.female}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select
-                                value={formData.isAlive ? 'alive' : 'dead'}
-                                onChange={e => setFormData({ ...formData, isAlive: e.target.value === 'alive' })}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                            >
-                                <option value="alive">{t.alive}</option>
-                                <option value="dead">{t.deceased}</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.male}/{t.female}</label>
+                        <select
+                            value={formData.gender}
+                            onChange={e => setFormData({ ...formData, gender: e.target.value as Gender })}
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                            <option value="male">{t.male}</option>
+                            <option value="female">{t.female}</option>
+                        </select>
                     </div>
 
                     <div>

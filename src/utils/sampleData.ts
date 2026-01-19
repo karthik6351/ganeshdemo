@@ -1,91 +1,152 @@
+import { Member, AppState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { FamilyTreeState, Member } from '../types';
 
-export const generateSampleData = (): Partial<FamilyTreeState> => {
-    const rootId = uuidv4();
-    const spouseId = uuidv4();
+/**
+ * Generate sample family tree data for testing
+ */
+export const generateSampleData = (): AppState => {
+    // Root couple
+    const root1Id = uuidv4();
+    const root1SpouseId = uuidv4();
+
+    // First generation (children of root couple)
     const child1Id = uuidv4();
     const child2Id = uuidv4();
-    const grandChildId = uuidv4();
+    const child3Id = uuidv4();
 
-    const members: Record<string, Member> = {
-        [rootId]: {
-            id: rootId,
-            firstName: 'Ramarao',
-            lastName: 'Gonugunta',
+    // Second generation (grandchildren)
+    const grandchild1Id = uuidv4();
+    const grandchild2Id = uuidv4();
+
+    const members: Member[] = [
+        // Root couple
+        {
+            id: root1Id,
+            firstName: 'రామారావు',
+            lastName: 'గోనుగుంట',
             gender: 'male',
-            dob: '1950-01-01',
-            isLiving: true,
+            dob: '1950-05-15',
+            isAlive: false,
             branchId: 'main',
-            relationships: [
-                { id: uuidv4(), type: 'spouse', relatedMemberId: spouseId },
-                { id: uuidv4(), type: 'parent', relatedMemberId: child1Id }, // Implies child1 is child
-                { id: uuidv4(), type: 'parent', relatedMemberId: child2Id },
-            ],
-            metadata: { created: Date.now(), updated: Date.now() }
+            spouseId: root1SpouseId,
+            location: 'Guntur, AP',
+            notes: 'మూల పురుషుడు'
         },
-        [spouseId]: {
-            id: spouseId,
-            firstName: 'Lakshmi',
-            lastName: 'Gonugunta',
+        {
+            id: root1SpouseId,
+            firstName: 'లక్ష్మీ',
+            lastName: 'గోనుగుంట',
             gender: 'female',
-            dob: '1955-05-15',
-            isLiving: true,
+            dob: '1955-08-20',
+            isAlive: true,
             branchId: 'main',
-            relationships: [
-                { id: uuidv4(), type: 'spouse', relatedMemberId: rootId },
-                { id: uuidv4(), type: 'parent', relatedMemberId: child1Id },
-                { id: uuidv4(), type: 'parent', relatedMemberId: child2Id },
-            ],
-            metadata: { created: Date.now(), updated: Date.now() }
+            spouseId: root1Id,
+            location: 'Guntur, AP'
         },
-        [child1Id]: {
+
+        // First generation
+        {
             id: child1Id,
-            firstName: 'Srinivas',
-            lastName: 'Gonugunta',
+            firstName: 'శ్రీనివాస్',
+            lastName: 'గోనుగుంట',
             gender: 'male',
-            dob: '1980-08-20',
-            isLiving: true,
+            dob: '1975-03-10',
+            isAlive: true,
             branchId: 'main',
-            relationships: [
-                { id: uuidv4(), type: 'child', relatedMemberId: rootId },
-                { id: uuidv4(), type: 'child', relatedMemberId: spouseId },
-                { id: uuidv4(), type: 'parent', relatedMemberId: grandChildId },
-            ],
-            metadata: { created: Date.now(), updated: Date.now() }
+            fatherId: root1Id,
+            motherId: root1SpouseId,
+            location: 'Hyderabad, TS',
+            phone: '9876543210',
+            notes: 'Software Engineer'
         },
-        [child2Id]: {
+        {
             id: child2Id,
-            firstName: 'Kavitha',
-            lastName: 'Gonugunta',
+            firstName: 'కవిత',
+            lastName: 'గోనుగుంట',
             gender: 'female',
-            dob: '1985-02-10',
-            isLiving: true,
+            dob: '1978-07-25',
+            isAlive: true,
             branchId: 'main',
-            relationships: [
-                { id: uuidv4(), type: 'child', relatedMemberId: rootId },
-                { id: uuidv4(), type: 'child', relatedMemberId: spouseId },
-            ],
-            metadata: { created: Date.now(), updated: Date.now() }
+            fatherId: root1Id,
+            motherId: root1SpouseId,
+            location: 'Vijayawada, AP'
         },
-        [grandChildId]: {
-            id: grandChildId,
-            firstName: 'Chintu',
-            lastName: 'Gonugunta',
+        {
+            id: child3Id,
+            firstName: 'రవి',
+            lastName: 'గోనుగుంట',
             gender: 'male',
-            dob: '2010-11-14',
-            isLiving: true,
+            dob: '1982-11-05',
+            isAlive: true,
             branchId: 'main',
-            relationships: [
-                { id: uuidv4(), type: 'child', relatedMemberId: child1Id },
-            ],
-            metadata: { created: Date.now(), updated: Date.now() }
+            fatherId: root1Id,
+            motherId: root1SpouseId,
+            location: 'Bangalore, KA',
+            phone: '9123456789'
+        },
+
+        // Second generation (grandchildren)
+        {
+            id: grandchild1Id,
+            firstName: 'ప్రియ',
+            lastName: 'గోనుగుంట',
+            gender: 'female',
+            dob: '2005-01-15',
+            isAlive: true,
+            branchId: 'main',
+            fatherId: child1Id,
+            location: 'Hyderabad, TS',
+            notes: 'College student'
+        },
+        {
+            id: grandchild2Id,
+            firstName: 'అర్జున్',
+            lastName: 'గోనుగుంట',
+            gender: 'male',
+            dob: '2008-09-20',
+            isAlive: true,
+            branchId: 'main',
+            fatherId: child1Id,
+            location: 'Hyderabad, TS',
+            notes: 'High school student'
         }
-    };
+    ];
 
     return {
         members,
-        rootMemberId: rootId,
-        branches: { 'main': { id: 'main', name: 'Main Branch' } }
+        branches: [
+            {
+                id: 'main',
+                name: 'ప్రధాన శాఖ',
+                description: 'గోనుగుంట వంశ ప్రధాన శాఖ'
+            }
+        ],
+        settings: {
+            language: 'te',
+            darkMode: false,
+            locked: false
+        }
     };
+};
+
+/**
+ * Initialize sample data if no data exists
+ */
+export const initializeSampleData = (): boolean => {
+    try {
+        const stored = localStorage.getItem('family_tree_data');
+        if (!stored || JSON.parse(stored).members.length === 0) {
+            const sampleData = generateSampleData();
+            localStorage.setItem('family_tree_data', JSON.stringify({
+                ...sampleData,
+                version: '1.0.0',
+                lastModified: Date.now()
+            }));
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error initializing sample data:', error);
+        return false;
+    }
 };

@@ -7,6 +7,10 @@ import memberRoutes from './routes/memberRoutes.js';
 // Load environment variables
 dotenv.config();
 
+console.log('🔧 Starting Family Tree Server...');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('MongoDB URI configured:', process.env.MONGODB_URI ? 'Yes' : 'No');
+
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,16 +36,22 @@ app.use((req, res) => {
 // Start server
 const startServer = async () => {
     try {
+        console.log('📡 Connecting to MongoDB...');
+
         // Connect to MongoDB
         await connectDB();
+
+        console.log('✅ MongoDB connected successfully!');
 
         // Start listening
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📍 API: http://localhost:${PORT}/api`);
+            console.log(`💚 Health: http://localhost:${PORT}/api/health`);
         });
     } catch (error) {
-        console.error('Failed to start server:', error);
+        console.error('❌ Failed to start server:', error);
+        console.error('Error details:', error.message);
         process.exit(1);
     }
 };

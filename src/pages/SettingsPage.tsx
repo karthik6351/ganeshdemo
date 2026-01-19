@@ -7,7 +7,7 @@ import { useFamily } from '../context/FamilyContext';
 
 export const SettingsPage = () => {
     const { t, i18n } = useTranslation();
-    const { exportData, settings, setLanguage } = useFamily();
+    const { exportData, importData, settings, setLanguage } = useFamily();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -15,32 +15,42 @@ export const SettingsPage = () => {
         if (file) {
             try {
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = async (event) => {
                     try {
-                        const data = JSON.parse(event.target?.result as string);
-                        console.log('Imported data:', data);
-                        alert('Tree imported successfully! (Feature under development)');
-                    } catch {
+                        const jsonString = event.target?.result as string;
+                        await importData(jsonString);
+                        alert('Family tree imported successfully!');
+                        window.location.reload();
+                    } catch (error) {
                         alert('Failed to import tree: Invalid format');
+                        console.error('Import error:', error);
                     }
                 };
                 reader.readAsText(file);
             } catch (error) {
                 alert('Failed to import tree: Invalid format');
+                console.error('Import error:', error);
             }
         }
     };
 
-    const handleClear = () => {
-        if (window.confirm('Are you sure you want to delete all data? This cannot be undone.')) {
-            localStorage.clear();
-            window.location.reload();
+    const handleClear = async () => {
+        if (window.confirm('Are you sure you want to delete all data from MongoDB? This cannot be undone.')) {
+            try {
+                // This will be implemented via import with empty data
+                await importData(JSON.stringify({ members: [] }));
+                alert('All data cleared successfully!');
+                window.location.reload();
+            } catch (error) {
+                alert('Failed to clear data');
+                console.error('Clear error:', error);
+            }
         }
     };
 
     return (
         <div className="max-w-2xl mx-auto space-y-6 p-4">
-            <h2 className="text-2xl font-bold text-gray-900">{t('nav.settings')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.settings')}</h2>
 
             {/* Preferences */}
             <Card>
@@ -53,8 +63,8 @@ export const SettingsPage = () => {
                         <div className="flex items-center gap-3">
                             <Globe className="w-5 h-5 text-gray-500" />
                             <div>
-                                <p className="font-medium text-gray-900">Language</p>
-                                <p className="text-sm text-gray-500">Select your preferred language</p>
+                                <p className="font-medium text-gray-900 dark:text-white">Language</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Select your preferred language</p>
                             </div>
                         </div>
                         <div className="flex gap-2">
@@ -76,12 +86,12 @@ export const SettingsPage = () => {
                     </div>
 
                     {/* Theme */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-3">
                             <Moon className="w-5 h-5 text-gray-500" />
                             <div>
-                                <p className="font-medium text-gray-900">Theme</p>
-                                <p className="text-sm text-gray-500">Dark mode (coming soon)</p>
+                                <p className="font-medium text-gray-900 dark:text-white">Theme</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Dark mode (coming soon)</p>
                             </div>
                         </div>
                         <Button variant="outline" size="sm" disabled>
@@ -97,8 +107,9 @@ export const SettingsPage = () => {
                     <CardTitle>Data Management</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-500">
-                        Your family tree is stored in MongoDB cloud. You can export it to a file for backup.
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Your family tree data is stored in MongoDB Atlas cloud database.
+                        You can export your data to a JSON file for backup or import previously exported data.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -120,10 +131,10 @@ export const SettingsPage = () => {
                         />
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
+                    <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
                         <Button variant="danger" onClick={handleClear} className="w-full sm:w-auto">
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Clear Local Cache
+                            Clear All Data
                         </Button>
                     </div>
                 </CardContent>
