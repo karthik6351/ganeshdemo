@@ -92,7 +92,29 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             } as Member;
 
             const createdMember = await api.createMember(newMember);
-            setState(prev => ({ ...prev, members: [...prev.members, createdMember] }));
+
+            // If this is a spouse, update the original member to link back (bidirectional)
+            if (data.spouseId) {
+                const originalSpouse = state.members.find(m => m.id === data.spouseId);
+                if (originalSpouse) {
+                    await api.updateMember(data.spouseId, { spouseId: createdMember.id });
+                    setState(prev => ({
+                        ...prev,
+                        members: [
+                            ...prev.members.map(m =>
+                                m.id === data.spouseId
+                                    ? { ...m, spouseId: createdMember.id }
+                                    : m
+                            ),
+                            createdMember
+                        ]
+                    }));
+                } else {
+                    setState(prev => ({ ...prev, members: [...prev.members, createdMember] }));
+                }
+            } else {
+                setState(prev => ({ ...prev, members: [...prev.members, createdMember] }));
+            }
         } catch (err) {
             console.error('Error adding member:', err);
             setError('Failed to add member');
