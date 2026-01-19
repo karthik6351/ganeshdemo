@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useFamily } from '../../context/FamilyContext';
 import { translations } from '../../utils/translations';
+import { compressImage } from '../../utils/imageUtils';
 import { Member, Gender } from '../../types';
 import { X, Save, Upload } from 'lucide-react';
 
 export const MemberModal = () => {
     const { modalState, closeModal, addMember, updateMember, settings } = useFamily();
     const t = translations[settings.language];
+    const [isLoadingImage, setIsLoadingImage] = useState(false);
 
     const [formData, setFormData] = useState<Partial<Member>>({
         firstName: '',
@@ -59,7 +61,7 @@ export const MemberModal = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {/* Photo Upload */}
+                    // Photo Upload
                     <div className="flex justify-center mb-6">
                         <div
                             className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 relative overflow-hidden group"
@@ -68,8 +70,15 @@ export const MemberModal = () => {
                                 document.getElementById('photo-upload-input')?.click();
                             }}
                         >
-                            {formData.photoUrl ? (
-                                <img src={formData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                            {formData.photoUrl || isLoadingImage ? (
+                                <>
+                                    {formData.photoUrl && <img src={formData.photoUrl} alt="Preview" className={`w-full h-full object-cover ${isLoadingImage ? 'opacity-50' : ''}`} />}
+                                    {isLoadingImage && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    )}
+                                </>
                             ) : (
                                 <Upload className="text-gray-400" />
                             )}
@@ -80,21 +89,31 @@ export const MemberModal = () => {
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={(e) => {
+                            onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                    // Check file size (limit to 5MB)
-                                    if (file.size > 5 * 1024 * 1024) {
-                                        alert('Image size should be less than 5MB');
-                                        return;
+                                    setIsLoadingImage(true);
+                                    try {
+                                        let resultUrl = '';
+                                        // Check file size (limit to 5MB, if > 5MB, compress to ~4.7MB)
+                                        if (file.size > 5 * 1024 * 1024) {
+                                            // Compress
+                                            resultUrl = await compressImage(file, 4.7);
+                                        } else {
+                                            // Read normally
+                                            resultUrl = await new Promise((resolve) => {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => resolve(reader.result as string);
+                                                reader.readAsDataURL(file);
+                                            });
+                                        }
+                                        setFormData({ ...formData, photoUrl: resultUrl });
+                                    } catch (error) {
+                                        console.error("Image processing error:", error);
+                                        alert("Error processing image. Please try another one.");
+                                    } finally {
+                                        setIsLoadingImage(false);
                                     }
-
-                                    // Read the file and convert to base64
-                                    const reader = new FileReader();
-                                    reader.onloadend = () => {
-                                        setFormData({ ...formData, photoUrl: reader.result as string });
-                                    };
-                                    reader.readAsDataURL(file);
                                 }
                             }}
                         />
