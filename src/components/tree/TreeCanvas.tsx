@@ -34,12 +34,15 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                         {/* Center Connector / Button */}
                         <div className="relative z-10">
                             {spouse ? (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg flex items-center justify-center text-white border-2 border-white">
-                                    <Heart size={14} className="fill-white" />
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg flex items-center justify-center text-white border-2 border-white">
+                                    <Plus size={16} className="text-white" />
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => openModal('add', { spouseId: memberId })}
+                                    onClick={() => openModal('add', {
+                                        spouseId: memberId,
+                                        gender: member.gender === 'male' ? 'female' : 'male'
+                                    })}
                                     className="w-8 h-8 rounded-full bg-slate-100 hover:bg-pink-100 text-slate-400 hover:text-pink-500 border-2 border-white shadow-md flex items-center justify-center transition-all hover:scale-110"
                                     title="Add Spouse"
                                 >
@@ -134,7 +137,9 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                         </div>
 
                         <button
-                            onClick={() => openModal('add', { fatherId: memberId })}
+                            onClick={() => openModal('add', {
+                                [member.gender === 'female' ? 'motherId' : 'fatherId']: member.id
+                            })}
                             className="w-[140px] h-[160px] rounded-[2rem] border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50 hover:bg-blue-50 flex flex-col items-center justify-center gap-3 transition-all group"
                         >
                             <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:scale-110 transition-transform">
@@ -295,37 +300,44 @@ export const TreeCanvas = ({ editMode = false }: { editMode?: boolean }) => {
                 }}
             />
 
-            <TransformWrapper
-                initialScale={isMobile ? 0.6 : 0.9}
-                minScale={0.2}
-                maxScale={3}
-                centerOnInit
-                limitToBounds={false}
-                panning={{ velocityDisabled: false }}
-            >
-                {({ zoomIn, zoomOut, resetTransform }) => (
-                    <>
-                        {/* Floating Controls */}
-                        <div className="absolute bottom-8 right-6 flex flex-col gap-3 z-50">
-                            <button onClick={() => zoomIn()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
-                                <Plus size={24} />
-                            </button>
-                            <button onClick={() => zoomOut()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
-                                <div className="w-4 h-0.5 bg-current" />
-                            </button>
-                            <button onClick={() => resetTransform()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100 text-[10px] font-bold tracking-widest">
-                                FIT
-                            </button>
-                        </div>
+            {/* Watermark - increased opacity and removed grayscale for visibility */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
+                <img src="/logo.jpg" alt="Family Tree Watermark" className="w-[500px] h-[500px] object-contain" />
+            </div>
 
-                        <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full flex items-center justify-center">
-                            <div className="p-32 min-w-max">
-                                {rootId && <TreeNode memberId={rootId} editMode={editMode} onViewProfile={undefined} />}
+            <div className="relative z-10 w-full h-full">
+                <TransformWrapper
+                    initialScale={isMobile ? 0.6 : 0.9}
+                    minScale={0.2}
+                    maxScale={3}
+                    centerOnInit
+                    limitToBounds={false}
+                    panning={{ velocityDisabled: false }}
+                >
+                    {({ zoomIn, zoomOut, resetTransform }) => (
+                        <>
+                            {/* Floating Controls */}
+                            <div className="absolute bottom-8 right-6 flex flex-col gap-3 z-50">
+                                <button onClick={() => zoomIn()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
+                                    <Plus size={24} />
+                                </button>
+                                <button onClick={() => zoomOut()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100">
+                                    <div className="w-4 h-0.5 bg-current" />
+                                </button>
+                                <button onClick={() => resetTransform()} className="w-12 h-12 bg-white shadow-xl rounded-full flex items-center justify-center text-slate-700 hover:text-blue-600 hover:scale-110 transition-all border border-slate-100 text-[10px] font-bold tracking-widest">
+                                    FIT
+                                </button>
                             </div>
-                        </TransformComponent>
-                    </>
-                )}
-            </TransformWrapper>
+
+                            <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full flex items-center justify-center">
+                                <div className="p-32 min-w-max">
+                                    {rootId && <TreeNode memberId={rootId} editMode={editMode} onViewProfile={undefined} />}
+                                </div>
+                            </TransformComponent>
+                        </>
+                    )}
+                </TransformWrapper>
+            </div>
 
             {/* Mode Indicator */}
             <div className="absolute top-6 left-6 z-50">
