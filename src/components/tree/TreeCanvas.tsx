@@ -66,9 +66,13 @@ const TreeNode = ({ memberId, editMode, onViewProfile }: { memberId: string, edi
                         {/* Center Connector / Button */}
                         <div className="relative z-10">
                             {spouse ? (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg flex items-center justify-center text-white border-2 border-white">
+                                <button
+                                    onClick={handleAddChild}
+                                    className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg flex items-center justify-center text-white border-2 border-white hover:scale-110 transition-transform cursor-pointer"
+                                    title="Add Child to Couple"
+                                >
                                     <Plus size={16} className="text-white" />
-                                </div>
+                                </button>
                             ) : (
                                 <div className="relative">
                                     <button
