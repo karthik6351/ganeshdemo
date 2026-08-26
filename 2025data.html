@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <title>Ganesh Demo - Previous Year Data</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -318,13 +319,13 @@
     <footer class="footer">
         © <span id="year"></span> Ganesh Demo
         <br>
-        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
     </footer>
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
 
-        const API_BASE = "https://wcyf-app.onrender.com"; // Replace with real URL if needed
+        const API_BASE = ""; // Replace with real URL if needed
 
         // 1. Determine Previous Year
         const selectedYear = Number(localStorage.getItem("selectedYear")) || new Date().getFullYear();
