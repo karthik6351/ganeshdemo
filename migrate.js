@@ -1,7 +1,7 @@
 const https = require('https');
 
 const data = JSON.stringify({
-    password: "GanesH123"
+    password: "ganesh"
 });
 
 const options = {

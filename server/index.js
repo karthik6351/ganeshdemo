@@ -264,8 +264,8 @@ app.get("/ping", (req, res) => {
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
 
-  const FIXED_USERNAME = "ganeshwcyf";
-  const FIXED_PASSWORD = "wcyf";
+  const FIXED_USERNAME = "ganesh";
+  const FIXED_PASSWORD = "ganesh";
 
   console.log("🔐 LOGIN ATTEMPT:", username, password);
 
@@ -877,7 +877,7 @@ app.post("/api/migrate", async (req, res) => {
   try {
     const { password } = req.body;
 
-    if (password !== "GanesH123") {
+    if (password !== "ganesh") {
       return res.status(401).json({ message: "Invalid password" });
     }
 
@@ -940,7 +940,7 @@ app.post("/api/reset", async (req, res) => {
   try {
     const { password, year } = req.body;
 
-    if (password !== "GanesH123") {
+    if (password !== "ganesh") {
       return res.status(401).json({ message: "Invalid password" });
     }
 
