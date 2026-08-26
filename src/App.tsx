@@ -29,24 +29,29 @@ const AppContent = () => {
           >
             <img
               src="/logo.jpg"
-              alt="Gonugunta Family Logo"
+              alt="Ganesh Demo Logo"
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/80 shadow-lg"
             />
-            <div className="text-left">
+            <div className="text-left flex flex-col justify-center">
               <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
-                {translations['te'].appName}
+                {translations[settings.language || 'en'].appName || 'Ganesh Demo'}
               </h1>
-              <p className="text-[10px] sm:text-xs text-orange-100 opacity-90">Gonugunta Family Tree</p>
+              <p className="text-[10px] sm:text-xs text-orange-100 opacity-90">Ganesh Mandapa Demo</p>
             </div>
           </button>
 
-          {/* Mode indicator */}
-          {editMode && (
-            <div className="bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-              <Edit size={14} />
-              Edit Mode
-            </div>
-          )}
+          {/* Branding and Mode indicator */}
+          <div className="flex flex-col items-end gap-1">
+            <a href="https://mangolabz.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-[8px] sm:text-[10px] text-white/80 hover:text-white uppercase tracking-wider font-bold">
+              DESIGNED by mango Labz
+            </a>
+            {editMode && (
+              <div className="bg-yellow-500/90 text-white px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1">
+                <Edit size={12} />
+                <span className="hidden sm:inline">Edit Mode</span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -72,7 +77,7 @@ const AppContent = () => {
                   />
                   <div>
                     <h2 className="font-bold text-lg">Menu</h2>
-                    <p className="text-xs opacity-90">వంశ వృక్షం</p>
+                    <p className="text-xs opacity-90">Ganesh Demo</p>
                   </div>
                 </div>
                 <button

@@ -28,9 +28,9 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: 'Gonugunta_Family',
-        short_name: 'Gonugunta_Family',
-        description: 'Interactive family tree application for Gonugunta family',
+        name: 'Ganesh_Demo',
+        short_name: 'Ganesh_Demo',
+        description: 'Interactive demo application for Ganesh Mandapas',
         theme_color: '#ea580c',
         background_color: '#fff7ed',
         display: 'standalone',
