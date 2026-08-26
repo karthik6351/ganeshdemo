@@ -39,6 +39,9 @@ export const MainLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <a href="https://mangolabz.vercel.app/" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-xs text-gray-500 hover:text-primary-600 mr-4 font-semibold uppercase tracking-wider">
+                            DESIGNED by mango Labz
+                        </a>
                         <Button variant="ghost" size="sm" onClick={handleLanguageToggle} title="Switch Language">
                             <Languages className="w-5 h-5 mr-1" />
                             <span className="uppercase text-xs font-bold">{language}</span>
