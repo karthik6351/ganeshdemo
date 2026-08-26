@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="assets/images/logo-192.png">
+
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --text-dark: #222;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ========== Header ========== */
+        /* Top Header */
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #ffffff;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Left section */
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Logo */
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #ff8a00;
+            cursor: pointer;
+        }
+
+        /* Title */
+        .header-title {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Sign out button */
+        .signout-btn {
+            background: linear-gradient(135deg, #ff8a00, #e67600);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 138, 0, 0.35);
+        }
+
+        .signout-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Mobile tweaks */
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 0.85rem;
+            }
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .summary-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0.2rem 0 0.6rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 14px;
+            padding: 0.7rem 0.8rem;
+            box-shadow: var(--shadow);
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .summary-card-link {
+            text-decoration: none;
+            color: #fff;
+            display: block;
+            cursor: pointer;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+        }
+
+        .summary-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .summary-card.balance-card {
+            grid-column: span 2;
+        }
+
+        .nav-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0.8rem 0 0.5rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .nav-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            padding: 1.1rem 1rem;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            text-decoration: none;
+        }
+
+        .nav-title {
+            font-size: 0.95rem;
+        }
+
+        .nav-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        @media (min-width: 640px) {
+            .summary-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 960px) {
+            .summary-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1.2rem;
+        }
+
+        /* ===== LOGO FIX (MOBILE + DESKTOP) ===== */
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Drawer Overlay */
+        #drawerOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            display: none;
+            z-index: 998;
+        }
+
+        /* Drawer */
+        #drawer {
+            position: fixed;
+            top: 0;
+            left: -260px;
+            width: 260px;
+            height: 100%;
+            background: #fff;
+            box-shadow: 4px 0 18px rgba(0, 0, 0, 0.15);
+            transition: left 0.25s ease;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Drawer open state */
+        #drawer.open {
+            left: 0;
+        }
+
+        /* Drawer header */
+        .drawer-header {
+            padding: 1.2rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .drawer-username {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* Drawer item */
+        .drawer-item {
+            padding: 1rem 1.2rem;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .drawer-item:hover {
+            background: #f5f5f5;
+        }
+
+        .reset-btn {
+            background: #fff;
+            color: #d11a2a;
+            border: 1px solid #d11a2a;
+        }
+
+        .reset-btn:not(:last-child) {
+            margin-bottom: 0.6rem;
+        }
+
+        .reset-btn:hover {
+            background: #d11a2a;
+            color: #fff;
+        }
+
+        .drawer-section {
+            padding: 1rem;
+        }
+
+        .drawer-label {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        .drawer-select {
+            width: 100%;
+            padding: 0.6rem;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .drawer-select:focus {
+            border-color: var(--orange);
+        }
+
+        /* Logo clickable */
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #ff8a00;
+            cursor: pointer;
+        }
+
+        /* Drawer overlay */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 999;
+        }
+
+        /* Drawer */
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: #fff;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 6px 0 18px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Drawer open state */
+        .drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Drawer header */
+        .drawer-header {
+            padding: 1.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .drawer-profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ff8a00;
+            object-fit: cover;
+            margin-bottom: 0.6rem;
+        }
+
+        .drawer-username {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* Drawer actions */
+        .drawer-actions {
+            padding: 1rem;
+        }
+
+        /* Drawer buttons – SAME WIDTH */
+        .drawer-btn {
+            width: 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff8a00, #e67600);
+            color: #fff;
+        }
+
+        /* Normalize icons */
+        .drawer-btn span.icon {
+            width: 22px;
+            text-align: center;
+        }
+
+        /* Universal button hover animation */
+        .btn,
+        button {
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease,
+                background-color 0.25s ease,
+                filter 0.25s ease;
+        }
+
+        /* Hover effect */
+        .btn:hover,
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(255, 138, 0, 0.35);
+            filter: brightness(1.05);
+        }
+
+        /* Active (click) effect */
+        .btn:active,
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.25);
+        }
+
+        /* Drawer buttons (Reset / Logout) – enhanced feel */
+        .drawer button {
+            width: 100%;
+            border-radius: 999px;
+        }
+
+        .drawer button:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 18px rgba(255, 138, 0, 0.3);
+        }
+
+        /* Drawer Log Out button – exact UI */
+        .drawer-logout-btn {
+            background: linear-gradient(135deg, #ff8a00, #e67600);
+            color: #fff;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 0.75rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.35);
+            transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        }
+
+        /* Hover – subtle darker orange (as in image) */
+        .drawer-logout-btn:hover {
+            background: linear-gradient(135deg, #f57c00, #d96a00);
+            box-shadow: 0 10px 22px rgba(255, 138, 0, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* Active press */
+        .drawer-logout-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Common drawer button style (Reset + Logout) */
+        .drawer-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff8a00, #e67600);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 999px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.35);
+            cursor: pointer;
+            transition: background 0.25s ease,
+                transform 0.15s ease,
+                box-shadow 0.2s ease;
+        }
+
+        /* Hover – same as Reset Data */
+        .drawer-btn:hover {
+            background: linear-gradient(135deg, #f57c00, #d96a00);
+            box-shadow: 0 10px 22px rgba(255, 138, 0, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* Click */
+        .drawer-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="top-header">
+        <div class="header-left">
+            <img src="assets/images/logo.png" alt="Logo" class="logo" id="drawerToggle" />
+            <span class="header-title">GANESH DEMO</span>
+        </div>
+
+        <button class="signout-btn" onclick="logoutUser()">Sign Out</button>
+    </header>
+
+
+    <!-- Drawer Overlay -->
+    <div id="drawerOverlay"></div>
+
+    <!-- Drawer -->
+    <aside id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-username" id="drawerUsername">
+                Admin
+            </div>
+        </div>
+
+        <div class="drawer-section">
+            <label class="drawer-label">📅 Select Year</label>
+            <select id="yearSelect" class="drawer-select" onchange="changeYear(this.value)">
+            </select>
+        </div>
+
+        <div class="drawer-actions">
+            <button class="drawer-btn reset-btn" onclick="resetYearData()">
+                <span class="icon">🔄</span>
+                Reset Data
+            </button>
+            <button class="drawer-btn reset-btn" onclick="logoutUser()">
+                <span class="icon">🧾</span>
+                Log Out
+            </button>
+        </div>
+    </aside>
+
+
+    <main class="container">
+
+        <div class="summary-section-title">
+            Overview
+            <span id="overviewYear" style="font-size:0.9rem;color:#777;"></span>
+        </div>
+        <section class="summary-grid">
+            <!-- Total collected -->
+            <div class="summary-card">
+                <div class="summary-label">Total Money Collected</div>
+                <div class="summary-value">₹ <span id="totalCollected">0</span></div>
+            </div>
+
+            <!-- Total expenditure -->
+            <div class="summary-card">
+                <div class="summary-label">Total Expenditure</div>
+                <div class="summary-value">₹ <span id="totalExpenditure">0</span></div>
+            </div>
+
+            <!-- Balance -->
+            <div class="summary-card balance-card">
+                <div class="summary-label">Balance</div>
+                <div class="summary-value">₹ <span id="balanceAmount">0</span></div>
+            </div>
+
+            <!-- Today collection (with date) -->
+            <a href="dailycollection.html" class="summary-card summary-card-link">
+                <div class="summary-label" id="dailyCollectionLabel">Daily Collection</div>
+                <div class="summary-value">₹ <span id="dailyCollection">0</span></div>
+            </a>
+
+            <!-- Last year total -->
+            <a href="2025data.html" class="summary-card summary-card-link">
+                <div class="summary-label">Last Year Money</div>
+                <div class="summary-value">₹ <span id="lastYearCollection">0</span></div>
+            </a>
+        </section>
+
+        <div class="nav-section-title">Manage</div>
+        <section class="nav-grid">
+            <a href="money-collection.html" class="nav-card">
+                <div class="nav-title">Money Collection</div>
+                <div class="nav-text">View / Add</div>
+            </a>
+
+            <a href="expenditure.html" class="nav-card">
+                <div class="nav-title">Expenditure</div>
+                <div class="nav-text">View / Add</div>
+            </a>
+        </section>
+
+        <!-- Tasks and Events in side-by-side layout (similar to Overview) -->
+        <section class="summary-grid">
+            <a href="tasks.html" class="nav-card">
+                <div class="nav-title">Tasks</div>
+                <div class="nav-text">Manage</div>
+            </a>
+
+            <a href="events.html" class="nav-card">
+                <div class="nav-title">Events</div>
+                <div class="nav-text">View / Add</div>
+            </a>
+
+
+
+
+
+
+
+        </section>
+
+        <!-- Special List (Full width, like Money Collection) -->
+        <section class="nav-grid">
+            <a href="special_list.html" class="nav-card">
+                <div class="nav-title">Special List</div>
+                <div class="nav-text">View / Add</div>
+            </a>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <script>
+        // Dynamic API base: works on localhost + deployed domain
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        // Footer year
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        // Sign Out button
+        const signOutBtn = document.getElementById("signOutBtn");
+        if (signOutBtn) {
+            signOutBtn.addEventListener("click", function () {
+                window.location.href = "index.html";
+            });
+        }
+
+        function getTodayIso() {
+            return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+        }
+
+        function todayDDMMYYYY() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, "0");
+            const mm = String(now.getMonth() + 1).padStart(2, "0");
+            const yyyy = now.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+        }
+
+        async function loadOverviewCards() {
+            const totalCollectedEl = document.getElementById("totalCollected");
+            const totalExpEl = document.getElementById("totalExpenditure");
+            const balanceEl = document.getElementById("balanceAmount");
+            const dailyCollectionEl = document.getElementById("dailyCollection");
+            const dailyLabelEl = document.getElementById("dailyCollectionLabel");
+            const lastYearEl = document.getElementById("lastYearCollection");
+
+            let totalCollected = 0;
+            let totalExpenditure = 0;
+            let dailyCollection = 0;
+            let lastYearTotal = 0;
+
+            const todayIso = getTodayIso();          // YYYY-MM-DD
+            const todayDD = todayDDMMYYYY();         // DD-MM-YYYY
+
+            // Get selected year
+            const selectedYear = localStorage.getItem("selectedYear") || new Date().getFullYear();
+
+            // Show today's date in the Daily Collection label
+            if (dailyLabelEl) {
+                dailyLabelEl.textContent = `Daily Collection (${todayDD})`;
+            }
+
+            /* -------- 1) Money collection (current DB) -------- */
+            try {
+                const res = await fetch(`${API_BASE}/api/money?year=${selectedYear}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    (data || []).forEach((entry) => {
+                        const amount = Number(entry.amount) || 0;
+                        const rawDate = (entry.date || "").trim();
+
+                        totalCollected += amount;
+
+                        // Normalize backend date to DD-MM-YYYY
+                        let ddmmyyyy = "";
+                        if (/^\d{2}-\d{2}-\d{4}$/.test(rawDate)) {
+                            ddmmyyyy = rawDate; // already DD-MM-YYYY
+                        } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+                            const [y, m, d] = rawDate.split("-");
+                            ddmmyyyy = `${d}-${m}-${y}`;
+                        } else if (rawDate.length >= 10) {
+                            // fallback: just take date-like part
+                            ddmmyyyy = rawDate.slice(0, 10);
+                        }
+
+                        if (ddmmyyyy === todayDD) {
+                            dailyCollection += amount;
+                        }
+                    });
+                } else {
+                    console.error("Error fetching /api/money. Status:", res.status);
+                }
+            } catch (err) {
+                console.error("Network error while loading /api/money:", err);
+            }
+
+            /* -------- 2) Total Expenditure from backend -------- */
+            try {
+                const resExp = await fetch(`${API_BASE}/api/expenditure?year=${selectedYear}`);
+                if (resExp.ok) {
+                    const expData = await resExp.json();
+                    (expData || []).forEach((exp) => {
+                        totalExpenditure += Number(exp.amount) || 0;
+                    });
+                } else {
+                    console.error("Error fetching /api/expenditure. Status:", resExp.status);
+                }
+            } catch (err) {
+                console.error("Network error while loading /api/expenditure:", err);
+            }
+
+            /* -------- 3) Last year money (Manual or Dynamic from DB) -------- */
+            try {
+                // Calculate previous year
+                const prevYear = Number(selectedYear) - 1;
+
+                // Check if manual amount exists in localStorage
+                const manualKey = `manualAmount_${prevYear}`;
+                const manualAmount = localStorage.getItem(manualKey);
+
+                if (manualAmount) {
+                    // Use manually entered amount
+                    lastYearTotal = Number(manualAmount) || 0;
+                    console.log(`Using manual amount for ${prevYear}: ₹${lastYearTotal}`);
+                } else {
+                    // Fetch previous year's money collection from API
+                    const resPrev = await fetch(`${API_BASE}/api/money?year=${prevYear}`);
+                    if (resPrev.ok) {
+                        const dataPrev = await resPrev.json();
+                        (dataPrev || []).forEach((entry) => {
+                            lastYearTotal += Number(entry.amount) || 0;
+                        });
+                        console.log(`Using API data for ${prevYear}: ₹${lastYearTotal}`);
+                    } else {
+                        console.error(`Error fetching /api/money for year ${prevYear}. Status:`, resPrev.status);
+                    }
+                }
+            } catch (err) {
+                console.error("Network error while loading previous year money:", err);
+            }
+
+            /* -------- 4) Update UI -------- */
+            totalCollectedEl.textContent = totalCollected;
+            dailyCollectionEl.textContent = dailyCollection;
+            lastYearEl.textContent = lastYearTotal;
+            totalExpEl.textContent = totalExpenditure;
+
+            // balance = last year money + total collected - total expenditure
+            // NOTE: This balance formula assumes 'lastYearTotal' is the starting balance for the current year.
+            // If selectedYear is 2030, this hardcoded 2025 'lastYearTotal' might be wrong, but let's fix the API data first.
+            const balance = lastYearTotal + totalCollected - totalExpenditure;
+            balanceEl.textContent = balance;
+        }
+
+        loadOverviewCards();
+    </script>
+
+    <script>
+        /* Drawer logic */
+        const drawerToggle = document.getElementById("drawerToggle");
+        const drawer = document.getElementById("drawer");
+        const overlay = document.getElementById("drawerOverlay");
+
+        function openDrawer() {
+            drawer.classList.add("open");
+            overlay.style.display = "block";
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove("open");
+            overlay.style.display = "none";
+        }
+
+        drawerToggle.addEventListener("click", openDrawer);
+        overlay.addEventListener("click", closeDrawer);
+
+        /* Username (example: from localStorage) */
+        const username = localStorage.getItem("username") || "Admin";
+        document.getElementById("drawerUsername").textContent = username;
+
+        /* Logout */
+        function logoutUser() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        async function resetYearData() {
+            const enteredPassword = prompt("Enter password to reset data for selected year:");
+
+            if (enteredPassword !== "GanesH123") {
+                alert("❌ Incorrect password");
+                return;
+            }
+
+            const year = Number(localStorage.getItem("selectedYear") || new Date().getFullYear());
+
+            if (!confirm(`⚠️ ARE YOU SURE? This will PERMANENTLY DELETE all data for ${year}.`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/reset`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: enteredPassword, year: year })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert(data.message || `✅ Data for year ${year} has been reset successfully`);
+                    window.location.reload();
+                } else {
+                    alert("❌ Reset failed: " + (data.message || "Unknown error"));
+                }
+            } catch (err) {
+                console.error("Reset error:", err);
+                alert("❌ Error connecting to server");
+            }
+        }
+
+        const YEAR_START = 2020;
+        const YEAR_END = 2030;
+
+        // Get current year fallback
+        function getDefaultYear() {
+            return new Date().getFullYear();
+        }
+
+        // Get selected year
+        function getSelectedYear() {
+            return localStorage.getItem("selectedYear") || getDefaultYear();
+        }
+
+        // Set selected year
+        function changeYear(year) {
+            localStorage.setItem("selectedYear", year);
+            window.location.reload(); // reload page to apply everywhere
+        }
+
+        // Populate dropdown
+        function populateYearDropdown() {
+            const select = document.getElementById("yearSelect");
+            if (!select) return;
+
+            const selectedYear = getSelectedYear();
+            select.innerHTML = "";
+
+            for (let y = YEAR_START; y <= YEAR_END; y++) {
+                const option = document.createElement("option");
+                option.value = y;
+                option.textContent = y;
+                if (String(y) === String(selectedYear)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            }
+        }
+
+        // Run on load
+        document.addEventListener("DOMContentLoaded", () => {
+            populateYearDropdown();
+
+            const year = getSelectedYear();
+            const el = document.getElementById("overviewYear");
+            if (el) el.textContent = `(${year})`;
+        });
+    </script>
+
+
+</body>
+
+</html>

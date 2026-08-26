@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Expenditure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #fff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, .06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui;
+            background: #fff;
+            color: #222
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            object-fit: cover;
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: auto
+        }
+
+        /* Summary */
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow)
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700
+        }
+
+        /* Form */
+        .card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: .6rem
+        }
+
+        label {
+            font-size: .85rem;
+            font-weight: 500
+        }
+
+        input {
+            padding: .6rem;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: .9rem
+        }
+
+        .actions-row {
+            display: flex;
+            gap: .5rem
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: .6rem 1rem;
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .3rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, .3);
+        }
+
+        .btn-secondary {
+            background: #e7e7e7;
+            color: #444
+        }
+
+        button:active {
+            transform: translateY(1px) scale(.99);
+            box-shadow: none;
+        }
+
+        /* Toolbar (Search + Export) */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: .6rem;
+        }
+
+        .search-input {
+            padding: .45rem .75rem;
+            border-radius: 999px;
+            border: 1px solid #dcdcdc;
+            font-size: .9rem;
+            min-width: 180px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, .16);
+        }
+
+        /* List */
+        .list-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: .8rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .list-header,
+        .row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: .5rem;
+            align-items: center
+        }
+
+        .list-header {
+            font-size: .8rem;
+            color: #777;
+            border-bottom: 1px solid #eee;
+            padding: .4rem
+        }
+
+        .row {
+            padding: .45rem;
+            font-size: .9rem;
+            border-bottom: 1px solid #f0f0f0
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .expense-name {
+            font-weight: 500;
+            display: flex;
+            flex-direction: column
+        }
+
+        .expense-date {
+            font-size: .8rem;
+            color: #777
+        }
+
+        .amount {
+            font-weight: 600
+        }
+
+        .actions {
+            display: flex;
+            gap: .25rem;
+            justify-content: flex-end;
+        }
+
+        .icon {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: .3rem;
+            border-radius: 50%;
+        }
+
+        .icon:hover {
+            background-color: #f3f3f3
+        }
+
+        .icon:active {
+            transform: scale(.92)
+        }
+
+        .empty {
+            text-align: center;
+            color: #777;
+            font-size: .85rem;
+            padding: .6rem
+        }
+
+        .footer {
+            text-align: center;
+            font-size: .75rem;
+            color: #999;
+            padding: 1rem
+        }
+
+        @media (max-width:480px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .list-header {
+                display: none;
+            }
+
+            .row {
+                grid-template-columns: 1.7fr 1.3fr;
+                grid-template-rows: auto auto;
+                row-gap: .2rem;
+            }
+
+            .actions {
+                justify-content: flex-start;
+            }
+
+            .back-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: 2px solid var(--orange);
+                background-color: #fff;
+                color: var(--orange);
+                font-size: 1.2rem;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 0.4rem;
+            }
+
+            .back-btn:hover {
+                background-color: rgba(255, 138, 0, 0.08);
+            }
+
+            .back-btn:active {
+                transform: scale(0.95);
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'" aria-label="Go back">
+            ←
+        </button>
+
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+
+    <main class="container">
+
+        <h2>Expenditure</h2>
+
+        <!-- Total -->
+        <section class="summary-card">
+            <div>Total Expenditure</div>
+            <div class="summary-value">₹ <span id="total">0</span></div>
+        </section>
+
+        <!-- Form -->
+        <section class="card">
+            <h3 id="formTitle">Add Expense</h3>
+            <form id="form">
+
+                <div class="form-group">
+                    <label for="name">Expense Name</label>
+                    <input id="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount (₹)</label>
+                    <input id="amount" type="number" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input id="date" type="date" required>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn-primary" type="submit" id="submitBtn">Add</button>
+                    <button class="btn-secondary" type="button" id="clearBtn">Clear</button>
+                </div>
+
+            </form>
+        </section>
+
+        <!-- Toolbar: Search + Export -->
+        <div class="toolbar">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search entries...">
+            <button id="exportBtn" class="btn-secondary">📊 Export</button>
+        </div>
+
+        <!-- List -->
+        <section class="list-card">
+            <div class="list-header">
+                <div>Expense</div>
+                <div>Amount</div>
+                <div>Actions</div>
+            </div>
+            <div id="list">
+                <div class="empty" id="empty">Loading expenses...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <!-- XLSX library for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        // Dynamic API base (localhost in dev, same origin on hosting)
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const form = document.getElementById("form");
+        const nameInput = document.getElementById("name");
+        const amountInput = document.getElementById("amount");
+        const dateInput = document.getElementById("date");
+        const list = document.getElementById("list");
+        const totalSpan = document.getElementById("total");
+        const submitBtn = document.getElementById("submitBtn");
+        const formTitle = document.getElementById("formTitle");
+        const clearBtn = document.getElementById("clearBtn");
+        const exportBtn = document.getElementById("exportBtn");
+        const searchInput = document.getElementById("searchInput");
+        const emptyDiv = document.getElementById("empty");
+
+        let data = [];        // [{_id, name, amount, date}]
+        let editIndex = null; // index in data[] currently editing
+
+        function today() {
+            return new Date().toISOString().split("T")[0]; // ISO YYYY-MM-DD
+        }
+
+        // Convert ISO date (YYYY-MM-DD) to DD-MM-YYYY for display/export
+        function formatDateDisplay(iso) {
+            if (!iso) return "";
+            const parts = iso.split("-");
+            if (parts.length !== 3) return iso;
+            const [y, m, d] = parts;
+            return `${d}-${m}-${y}`;
+        }
+
+        dateInput.value = today();
+
+        function reset() {
+            nameInput.value = "";
+            amountInput.value = "";
+            dateInput.value = today();
+            editIndex = null;
+            submitBtn.textContent = "Add";
+            formTitle.textContent = "Add Expense";
+        }
+
+        function updateTotal() {
+            const total = data.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+            totalSpan.textContent = total.toString();
+        }
+
+        function render() {
+            list.innerHTML = "";
+
+            const filter = searchInput.value.trim().toLowerCase();
+
+            const visible = data.filter(e => {
+                if (!filter) return true;
+                const nameMatch = (e.name || "").toLowerCase().includes(filter);
+                const amountMatch = String(e.amount || "").includes(filter);
+                const dateMatch = formatDateDisplay(e.date || "").includes(filter);
+                return nameMatch || amountMatch || dateMatch;
+            });
+
+            if (data.length === 0) {
+                list.innerHTML = '<div class="empty">No expenses added</div>';
+                updateTotal();
+                return;
+            }
+
+            if (visible.length === 0) {
+                list.innerHTML = '<div class="empty">No entries match your search.</div>';
+                updateTotal();
+                return;
+            }
+
+            visible.forEach(e => {
+                const i = data.indexOf(e); // map back to original index
+                const div = document.createElement("div");
+                div.className = "row";
+                div.innerHTML = `
+            <div class="expense-name">
+                <span>${e.name}</span>
+                <span class="expense-date">${formatDateDisplay(e.date)}</span>
+            </div>
+            <div class="amount">₹ ${e.amount}</div>
+            <div class="actions">
+                <button class="icon" data-action="edit" data-index="${i}" title="Edit">✏️</button>
+                <button class="icon" data-action="delete" data-index="${i}" title="Delete">🗑️</button>
+                <button class="icon" data-action="share" data-index="${i}" title="Share">📤</button>
+            </div>`;
+                list.appendChild(div);
+            });
+
+            updateTotal();
+        }
+
+        // Load all expenditure entries from backend
+        async function loadExpenditureFromServer() {
+            try {
+                emptyDiv.textContent = "Loading expenses...";
+                emptyDiv.style.display = "block";
+
+                const selectedYear = localStorage.getItem("selectedYear") || new Date().getFullYear();
+                const res = await fetch(`${API_BASE}/api/expenditure?year=${selectedYear}`);
+                if (!res.ok) {
+                    const txt = await res.text().catch(() => "");
+                    console.error("Error loading /api/expenditure:", res.status, txt);
+                    list.innerHTML = '<div class="empty">Error loading expenses from server.</div>';
+                    totalSpan.textContent = "0";
+                    return;
+                }
+
+                const items = await res.json();
+                data = Array.isArray(items)
+                    ? items.map(it => ({
+                        _id: it._id,
+                        name: it.name || "",
+                        amount: Number(it.amount) || 0,
+                        date: it.date || today()    // stored as YYYY-MM-DD
+                    }))
+                    : [];
+
+                render();
+            } catch (err) {
+                console.error("Network error while loading expenditure:", err);
+                list.innerHTML = '<div class="empty">Could not reach server. Please check if backend is running.</div>';
+                totalSpan.textContent = "0";
+            }
+        }
+
+        form.onsubmit = async e => {
+            e.preventDefault();
+
+            const name = nameInput.value.trim();
+            const amount = parseInt(amountInput.value, 10);
+            const date = (dateInput.value || today()).trim(); // ISO YYYY-MM-DD
+
+            if (!name || isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid name and amount.");
+                return;
+            }
+
+            const payload = {
+                name,
+                amount,
+                date,
+                year: Number(localStorage.getItem("selectedYear")) || new Date().getFullYear()
+            };
+
+            try {
+                if (editIndex !== null) {
+                    // UPDATE existing
+                    const existing = data[editIndex];
+                    if (!existing || !existing._id) {
+                        alert("Cannot update: missing ID for this expense.");
+                        return;
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/expenditure/${existing._id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error("Failed to update expense");
+                    }
+
+                    const updated = await res.json();
+                    data[editIndex] = {
+                        _id: updated._id,
+                        name: updated.name,
+                        amount: Number(updated.amount) || 0,
+                        date: updated.date
+                    };
+                } else {
+                    // CREATE new
+                    const res = await fetch(`${API_BASE}/api/expenditure`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error("Failed to create expense");
+                    }
+
+                    const created = await res.json();
+                    data.push({
+                        _id: created._id,
+                        name: created.name,
+                        amount: Number(created.amount) || 0,
+                        date: created.date
+                    });
+                }
+
+                reset();
+                render();
+            } catch (err) {
+                console.error("Save expenditure error:", err);
+                alert("Error saving expense to server.");
+            }
+        };
+
+        function editExpense(i) {
+            const e = data[i];
+            if (!e) return;
+            nameInput.value = e.name;
+            amountInput.value = e.amount;
+            dateInput.value = e.date || today(); // ISO
+            editIndex = i;
+            submitBtn.textContent = "Update";
+            formTitle.textContent = "Edit Expense";
+            scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        async function deleteExpense(i) {
+            const e = data[i];
+            if (!e) return;
+            if (!confirm("Delete expense?")) return;
+
+            try {
+                if (e._id) {
+                    const res = await fetch(`${API_BASE}/api/expenditure/${e._id}`, {
+                        method: "DELETE"
+                    });
+                    if (!res.ok) throw new Error("Delete failed");
+                }
+                data.splice(i, 1);
+                reset();
+                render();
+            } catch (err) {
+                console.error("Delete expenditure error:", err);
+                alert("Error deleting expense from server.");
+            }
+        }
+
+        function shareExpense(i) {
+            const e = data[i];
+            if (!e) return;
+            const txt = `Expenditure
+Expense: ${e.name}
+Date: ${formatDateDisplay(e.date)}
+Amount: ₹ ${e.amount}`;
+            window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
+        }
+
+        // Delegate actions from list
+        list.addEventListener("click", (ev) => {
+            const btn = ev.target.closest("button.icon");
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const indexStr = btn.dataset.index;
+            if (indexStr === undefined) return;
+            const i = parseInt(indexStr, 10);
+            if (Number.isNaN(i)) return;
+
+            if (action === "edit") editExpense(i);
+            else if (action === "delete") deleteExpense(i);
+            else if (action === "share") shareExpense(i);
+        });
+
+        clearBtn.onclick = reset;
+
+        // Search box
+        searchInput.addEventListener("input", render);
+
+        // Export to Excel with date as DD-MM-YYYY
+        exportBtn.onclick = function () {
+            if (data.length === 0) {
+                alert("No data available to export.");
+                return;
+            }
+
+            const excelData = data.map(e => ({
+                Expense: e.name,
+                Amount: Number(e.amount) || 0,
+                Date: formatDateDisplay(e.date || today())
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Expenditure");
+
+            const todayIso = today(); // YYYY-MM-DD
+            const fileName = `expenditure_${todayIso}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        };
+
+        // Initial load from server
+        loadExpenditureFromServer();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,978 @@
+<!-- tasks.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Tasks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 0.9rem 1.1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-title {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Toolbar (Share all + Export) */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Form card */
+        .card {
+            background-color: var(--bg-light);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            padding: 0.6rem 0.75rem;
+            border-radius: 10px;
+            border: 1px solid #dcdcdc;
+            font-size: 0.9rem;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--orange);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.3rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #e7e7e7;
+            color: #444;
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+        }
+
+        .error-text {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: #d11a2a;
+            display: none;
+        }
+
+        /* Voice button & label row */
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+        }
+
+        .voice-btn {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--orange);
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.15s, color 0.15s, transform 0.08s;
+        }
+
+        .voice-btn:active {
+            transform: scale(0.94);
+        }
+
+        .voice-btn.listening {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+        }
+
+        /* Lists */
+        .list-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .list-card {
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 0.8rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .list-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .list-header-row,
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr auto;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .list-header-row {
+            padding: 0.4rem 0.3rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+
+        .entry-row {
+            padding: 0.45rem 0.3rem;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .entry-row:last-child {
+            border-bottom: none;
+        }
+
+        .entry-name {
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .entry-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .entry-name.completed {
+            color: #777;
+            text-decoration: line-through;
+        }
+
+        .entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        .icon-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: 50%;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background-color 0.15s, transform 0.08s;
+        }
+
+        .icon-btn:hover {
+            background-color: #f3f3f3;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .icon-complete {
+            color: #1b8d3b;
+        }
+
+        .icon-edit {
+            color: #1565c0;
+        }
+
+        .icon-delete {
+            color: #c62828;
+        }
+
+        .icon-share {
+            color: #1b8d3b;
+        }
+
+        .empty-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.7rem 0.3rem 0.4rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1rem;
+        }
+
+        @media (min-width: 720px) {
+            .list-wrapper {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            background-color: #fff;
+            color: var(--orange);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.4rem;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 138, 0, 0.08);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'" aria-label="Go back">
+            ←
+        </button>
+
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+
+    <main class="container">
+        <section class="page-header">
+            <h2>Tasks</h2>
+            <p>Works</p>
+        </section>
+
+        <!-- Summary -->
+        <section class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-title">Pending Tasks</div>
+                <div class="summary-value" id="pendingCount">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-title">Completed Tasks</div>
+                <div class="summary-value" id="completedCount">0</div>
+            </div>
+        </section>
+
+        <!-- Form -->
+        <section class="card">
+            <h3 id="formTitle">Add New Task</h3>
+            <form id="taskForm">
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="taskName" class="form-label">Task Name</label>
+                        <button type="button" class="voice-btn" id="taskMicBtn" title="Speak task">
+                            🎤
+                        </button>
+                    </div>
+                    <input type="text" id="taskName" class="form-input" placeholder="Ex: Bring coconuts, kumkum.."
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDate" class="form-label">Date</label>
+                    <input type="date" id="taskDate" class="form-input" required>
+                </div>
+
+                <p class="error-text" id="errorText">Please enter a task name.</p>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Task</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button id="shareAllBtn" class="btn btn-secondary">📤 Share All</button>
+            <button id="exportBtn" class="btn btn-secondary">📊 Export</button>
+        </div>
+
+        <!-- Lists -->
+        <section class="list-wrapper">
+            <!-- Pending -->
+            <div class="list-card">
+                <div class="list-title">Pending Tasks</div>
+                <div class="list-header-row">
+                    <div>Task</div>
+                    <div style="text-align:right;">Actions</div>
+                </div>
+                <div id="pendingContainer">
+                    <div class="empty-text" id="pendingEmpty">No pending tasks. Add above.</div>
+                </div>
+            </div>
+
+            <!-- Completed -->
+            <div class="list-card">
+                <div class="list-title">Completed Tasks</div>
+                <div class="list-header-row">
+                    <div>Task</div>
+                    <div style="text-align:right;">Actions</div>
+                </div>
+                <div id="completedContainer">
+                    <div class="empty-text" id="completedEmpty">No completed tasks yet.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <!-- XLSX library for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        // Dynamic API base (same style as other pages)
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const taskForm = document.getElementById("taskForm");
+        const taskNameInput = document.getElementById("taskName");
+        const taskDateInput = document.getElementById("taskDate");
+        const errorText = document.getElementById("errorText");
+        const submitBtn = document.getElementById("submitBtn");
+        const formTitle = document.getElementById("formTitle");
+        const clearBtn = document.getElementById("clearBtn");
+        const micBtn = document.getElementById("taskMicBtn");
+
+        const pendingContainer = document.getElementById("pendingContainer");
+        const completedContainer = document.getElementById("completedContainer");
+        const pendingEmpty = document.getElementById("pendingEmpty");
+        const completedEmpty = document.getElementById("completedEmpty");
+        const pendingCountSpan = document.getElementById("pendingCount");
+        const completedCountSpan = document.getElementById("completedCount");
+
+        const shareAllBtn = document.getElementById("shareAllBtn");
+        const exportBtn = document.getElementById("exportBtn");
+
+        let pendingTasks = [];
+        let completedTasks = [];
+        let editingList = null;   // "pending" | "completed" | null
+        let editingIndex = null;
+
+        function today() {
+            return new Date().toISOString().split("T")[0]; // ISO YYYY-MM-DD
+        }
+
+        // Convert ISO date (YYYY-MM-DD) to DD-MM-YYYY
+        function formatDateDisplay(iso) {
+            if (!iso) return "";
+            const parts = iso.split("-");
+            if (parts.length !== 3) return iso;
+            const [y, m, d] = parts;
+            return `${d}-${m}-${y}`;
+        }
+
+        taskDateInput.value = today();
+
+        function resetForm() {
+            taskNameInput.value = "";
+            taskDateInput.value = today();
+            errorText.style.display = "none";
+            editingList = null;
+            editingIndex = null;
+            submitBtn.textContent = "Add Task";
+            formTitle.textContent = "Add New Task";
+        }
+
+        function updateCounts() {
+            pendingCountSpan.textContent = pendingTasks.length;
+            completedCountSpan.textContent = completedTasks.length;
+        }
+
+        function createTaskRow(task, index, listType) {
+            const row = document.createElement("div");
+            row.className = "entry-row";
+
+            const nameDiv = document.createElement("div");
+            nameDiv.className = "entry-name";
+            if (listType === "completed") nameDiv.classList.add("completed");
+            nameDiv.innerHTML =
+                `<span>${task.name}</span>` +
+                `<span class="entry-date">${formatDateDisplay(task.date)}</span>`;
+
+            const actionsDiv = document.createElement("div");
+            actionsDiv.className = "entry-actions";
+
+            if (listType === "pending") {
+                const completeBtn = document.createElement("button");
+                completeBtn.className = "icon-btn icon-complete";
+                completeBtn.type = "button";
+                completeBtn.title = "Mark as completed";
+                completeBtn.innerHTML = "✔️";
+                completeBtn.dataset.action = "complete";
+                completeBtn.dataset.index = index;
+                completeBtn.dataset.list = listType;
+                actionsDiv.appendChild(completeBtn);
+            }
+
+            const editBtn = document.createElement("button");
+            editBtn.className = "icon-btn icon-edit";
+            editBtn.type = "button";
+            editBtn.title = "Edit";
+            editBtn.innerHTML = "✏️";
+            editBtn.dataset.action = "edit";
+            editBtn.dataset.index = index;
+            editBtn.dataset.list = listType;
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "icon-btn icon-delete";
+            deleteBtn.type = "button";
+            deleteBtn.title = "Delete";
+            deleteBtn.innerHTML = "🗑️";
+            deleteBtn.dataset.action = "delete";
+            deleteBtn.dataset.index = index;
+            deleteBtn.dataset.list = listType;
+
+            const shareBtn = document.createElement("button");
+            shareBtn.className = "icon-btn icon-share";
+            shareBtn.type = "button";
+            shareBtn.title = "Share on WhatsApp";
+            shareBtn.innerHTML = "📤";
+            shareBtn.dataset.action = "share";
+            shareBtn.dataset.index = index;
+            shareBtn.dataset.list = listType;
+
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(deleteBtn);
+            actionsDiv.appendChild(shareBtn);
+
+            row.appendChild(nameDiv);
+            row.appendChild(actionsDiv);
+
+            return row;
+        }
+
+        function renderTasks() {
+            pendingContainer.innerHTML = "";
+            completedContainer.innerHTML = "";
+
+            if (pendingTasks.length === 0) {
+                pendingEmpty.style.display = "block";
+                pendingContainer.appendChild(pendingEmpty);
+            } else {
+                pendingEmpty.style.display = "none";
+                pendingTasks.forEach((task, index) => {
+                    pendingContainer.appendChild(createTaskRow(task, index, "pending"));
+                });
+            }
+
+            if (completedTasks.length === 0) {
+                completedEmpty.style.display = "block";
+                completedContainer.appendChild(completedEmpty);
+            } else {
+                completedEmpty.style.display = "none";
+                completedTasks.forEach((task, index) => {
+                    completedContainer.appendChild(createTaskRow(task, index, "completed"));
+                });
+            }
+
+            updateCounts();
+        }
+
+        async function loadTasksFromServer() {
+            try {
+                const selectedYear = localStorage.getItem("selectedYear") || new Date().getFullYear();
+                const res = await fetch(`${API_BASE}/api/tasks?year=${selectedYear}`);
+                if (!res.ok) {
+                    console.error("Failed to load tasks:", res.status);
+                    return;
+                }
+
+                const data = await res.json();
+                const allTasks = Array.isArray(data) ? data : [];
+
+                // Normalize & sort by date (newest first), then by createdAt desc
+                allTasks.sort((a, b) => {
+                    const dateA = a.date || "";
+                    const dateB = b.date || "";
+                    if (dateA > dateB) return -1;
+                    if (dateA < dateB) return 1;
+                    const createdA = a.createdAt || "";
+                    const createdB = b.createdAt || "";
+                    if (createdA > createdB) return -1;
+                    if (createdA < createdB) return 1;
+                    return 0;
+                });
+
+                pendingTasks = allTasks.filter(t => (t.status || "pending") === "pending");
+                completedTasks = allTasks.filter(t => t.status === "completed");
+
+                renderTasks();
+            } catch (err) {
+                console.error("Error loading tasks from server:", err);
+                alert("Could not load tasks from server. Please check backend.");
+            }
+        }
+
+        taskForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const name = taskNameInput.value.trim();
+            let date = (taskDateInput.value || today()).trim();
+
+            if (!name) {
+                errorText.textContent = "Please enter a task name.";
+                errorText.style.display = "block";
+                return;
+            }
+            errorText.style.display = "none";
+
+            try {
+                if (editingList && editingIndex !== null) {
+                    // Update existing task
+                    const list = editingList === "pending" ? pendingTasks : completedTasks;
+                    const oldTask = list[editingIndex];
+                    if (!oldTask || !oldTask._id) {
+                        alert("Cannot update: missing task ID.");
+                        return;
+                    }
+
+                    const payload = {
+                        name,
+                        date,
+                        name,
+                        date,
+                        status: oldTask.status || (editingList === "completed" ? "completed" : "pending"),
+                        year: Number(localStorage.getItem("selectedYear")) || new Date().getFullYear()
+                    };
+
+                    const res = await fetch(`${API_BASE}/api/tasks/${oldTask._id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        console.error("Update error:", res.status);
+                        alert("Failed to update task on server.");
+                        return;
+                    }
+
+                    // Reload full list from backend to keep state consistent
+                    resetForm();
+                    await loadTasksFromServer();
+                } else {
+                    // Create new task (always pending initially)
+                    const payload = {
+                        name,
+                        date,
+                        name,
+                        date,
+                        status: "pending",
+                        year: Number(localStorage.getItem("selectedYear")) || new Date().getFullYear()
+                    };
+
+                    const res = await fetch(`${API_BASE}/api/tasks`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        console.error("Create error:", res.status);
+                        alert("Failed to create task on server.");
+                        return;
+                    }
+
+                    resetForm();
+                    await loadTasksFromServer();
+                }
+            } catch (err) {
+                console.error("Task save error:", err);
+                alert("Error saving task to server.");
+            }
+        });
+
+        clearBtn.addEventListener("click", resetForm);
+
+        async function handleAction(action, listType, index) {
+            const list = listType === "pending" ? pendingTasks : completedTasks;
+            const task = list[index];
+            if (!task) return;
+
+            if (action === "edit") {
+                taskNameInput.value = task.name;
+                taskDateInput.value = task.date || today();
+                editingList = listType;
+                editingIndex = index;
+                submitBtn.textContent = "Update Task";
+                formTitle.textContent = "Edit Task";
+                errorText.style.display = "none";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (action === "delete") {
+                if (!confirm("Delete this task?")) return;
+                if (!task._id) {
+                    alert("Cannot delete: missing task ID.");
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API_BASE}/api/tasks/${task._id}`, {
+                        method: "DELETE"
+                    });
+                    if (!res.ok) {
+                        console.error("Delete error:", res.status);
+                        alert("Failed to delete task from server.");
+                        return;
+                    }
+                    resetForm();
+                    await loadTasksFromServer();
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    alert("Error deleting task from server.");
+                }
+            } else if (action === "complete" && listType === "pending") {
+                // Mark as completed
+                if (!task._id) {
+                    alert("Cannot update: missing task ID.");
+                    return;
+                }
+                try {
+                    const payload = {
+                        name: task.name,
+                        date: task.date,
+                        status: "completed"
+                    };
+                    const res = await fetch(`${API_BASE}/api/tasks/${task._id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) {
+                        console.error("Complete error:", res.status);
+                        alert("Failed to mark task as completed on server.");
+                        return;
+                    }
+                    resetForm();
+                    await loadTasksFromServer();
+                } catch (err) {
+                    console.error("Complete error:", err);
+                    alert("Error updating task on server.");
+                }
+            } else if (action === "share") {
+                const statusText = listType === "pending" ? "Pending" : "Completed";
+                const displayDate = formatDateDisplay(task.date || today());
+                const shareText =
+                    "Task - Ganesh Demo\n" +
+                    "Task: " + task.name + "\n" +
+                    "Date: " + displayDate + "\n" +
+                    "Status: " + statusText;
+
+                const url = "https://wa.me/?text=" + encodeURIComponent(shareText);
+                window.open(url, "_blank");
+            }
+        }
+
+        pendingContainer.addEventListener("click", function (e) {
+            const btn = e.target;
+            if (!(btn instanceof HTMLButtonElement)) return;
+            handleAction(btn.dataset.action, btn.dataset.list, parseInt(btn.dataset.index, 10));
+        });
+
+        completedContainer.addEventListener("click", function (e) {
+            const btn = e.target;
+            if (!(btn instanceof HTMLButtonElement)) return;
+            handleAction(btn.dataset.action, btn.dataset.list, parseInt(btn.dataset.index, 10));
+        });
+
+        // Share ALL tasks button
+        shareAllBtn.addEventListener("click", function () {
+            if (pendingTasks.length === 0 && completedTasks.length === 0) {
+                alert("No tasks to share.");
+                return;
+            }
+
+            let text = "Tasks - Ganesh Demo\n\n";
+
+            if (pendingTasks.length > 0) {
+                text += "Pending Tasks:\n";
+                pendingTasks.forEach((t, i) => {
+                    text += `${i + 1}. ${t.name} (${formatDateDisplay(t.date || today())})\n`;
+                });
+                text += "\n";
+            }
+
+            if (completedTasks.length > 0) {
+                text += "Completed Tasks:\n";
+                completedTasks.forEach((t, i) => {
+                    text += `${i + 1}. ${t.name} (${formatDateDisplay(t.date || today())})\n`;
+                });
+            }
+
+            const url = "https://wa.me/?text=" + encodeURIComponent(text);
+            window.open(url, "_blank");
+        });
+
+        // Export to Excel with DD-MM-YYYY dates
+        exportBtn.addEventListener("click", function () {
+            if (pendingTasks.length === 0 && completedTasks.length === 0) {
+                alert("No data available to export.");
+                return;
+            }
+
+            const allTasks = [];
+
+            pendingTasks.forEach(t => {
+                allTasks.push({
+                    Task: t.name,
+                    Date: formatDateDisplay(t.date || today()),
+                    Status: "Pending"
+                });
+            });
+
+            completedTasks.forEach(t => {
+                allTasks.push({
+                    Task: t.name,
+                    Date: formatDateDisplay(t.date || today()),
+                    Status: "Completed"
+                });
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(allTasks);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
+
+            const fileName = "tasks_" + today() + ".xlsx";
+            XLSX.writeFile(workbook, fileName);
+        });
+
+        // 🎤 Voice-to-text for Task Name (Web Speech API)
+        let recognition = null;
+
+        if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+            micBtn.style.display = "none";
+        } else {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            recognition.lang = "te-IN"; // Telugu (India)
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function () {
+                micBtn.classList.add("listening");
+                micBtn.title = "Listening...";
+            };
+
+            recognition.onend = function () {
+                micBtn.classList.remove("listening");
+                micBtn.title = "Speak task";
+            };
+
+            recognition.onerror = function () {
+                micBtn.classList.remove("listening");
+                micBtn.title = "Speak task";
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                taskNameInput.value = transcript;
+                taskNameInput.focus();
+            };
+
+            micBtn.addEventListener("click", function () {
+                if (!recognition) return;
+                try {
+                    recognition.start();
+                } catch (err) {
+                    // ignore if already started
+                }
+            });
+        }
+
+        // Initial load
+        loadTasksFromServer();
+    </script>
+
+</body>
+
+</html>

@@ -1,37 +1,309 @@
-<!doctype html>
-<html lang="te">
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <meta charset="UTF-8">
+    <title>Ganesh Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
 
-  <!-- Enhanced Mobile Viewport -->
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="assets/images/logo-192.png">
 
-  <!-- Theme Colors -->
-  <meta name="theme-color" content="#ea580c" />
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#7c2d12" />
 
-  <!-- iOS Specific -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Ganesh_Demo" />
-  <link rel="apple-touch-icon" href="/logo.jpg" />
+    <link rel="manifest" href="manifest.webmanifest">
+<script>
+  if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
 
-  <!-- Android/Chrome -->
-  <meta name="mobile-web-app-capable" content="yes" />
 
-  <!-- App Info -->
-  <meta name="application-name" content="Ganesh_Demo" />
-  <meta name="description" content="Interactive demo application for Ganesh Mandapas" />
+    <style>
+        :root {
+            --primary-orange: #ff8a00;
+            --primary-orange-dark: #e67600;
+            --bg-color: #ffffff;
+            --text-color: #222222;
+            --border-soft: #f0f0f0;
+            --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
 
-  <title>Ganesh Demo</title>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .app-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-soft);
+            background-color: #ffffff;
+        }
+
+        .app-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .app-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .login-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 18px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-soft);
+            padding: 1.75rem 1.5rem 1.5rem;
+        }
+
+        .login-heading {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.7rem 0.8rem;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fafafa;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 2px rgba(255,138,0,0.18);
+            background-color: #ffffff;
+        }
+
+        .password-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .toggle-password {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--primary-orange-dark);
+        }
+
+        .login-button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark));
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            box-shadow: 0 6px 14px rgba(255,138,0,0.3);
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .login-note {
+            margin-top: 0.8rem;
+            font-size: 0.75rem;
+            text-align: center;
+            color: #777;
+        }
+
+        .error-text {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: #d11a2a;
+            display: none;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0.75rem 0 1rem;
+        }
+    </style>
 </head>
-
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
 
+<div class="app-wrapper">
+
+    <header class="app-header">
+        <img src="assets/images/logo.png" class="app-logo" alt="Logo">
+        <h1 class="app-title">Ganesh Demo</h1>
+    </header>
+
+    <main class="login-container">
+        <section class="login-card">
+            <h2 class="login-heading">Login</h2>
+            <p class="login-subtitle">Use your admin credentials to continue</p>
+
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="usernameInput">Username</label>
+                    <input
+                        id="usernameInput"
+                        type="text"
+                        class="form-input"
+                        placeholder="Enter username"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="passwordInput">Password</label>
+                    <div class="password-row">
+                        <input
+                            type="password"
+                            id="passwordInput"
+                            class="form-input"
+                            placeholder="Enter password"
+                            required>
+                        <button type="button" id="togglePassword" class="toggle-password">Show</button>
+                    </div>
+                </div>
+
+                <p class="error-text" id="errorText">Invalid username or password.</p>
+
+                <button type="submit" class="login-button">Login</button>
+
+                <p class="login-note">Only authorized admin can access the dashboard.</p>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer-text">
+        © <span id="yearSpan"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: #666; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: block; margin-top: 10px;">DESIGNED by mango Labz</a>
+    </footer>
+
+</div>
+
+<script>
+    // Dynamic server for Android + iPhone + deployment
+    const API_BASE =
+  (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:5000"
+    : "https://wcyf-app.onrender.com";
+
+ // <-- replace with your real Render URL
+
+
+    document.getElementById("yearSpan").textContent = new Date().getFullYear();
+
+    const usernameInput   = document.getElementById("usernameInput");
+    const passwordInput   = document.getElementById("passwordInput");
+    const togglePassword  = document.getElementById("togglePassword");
+    const loginForm       = document.getElementById("loginForm");
+    const errorText       = document.getElementById("errorText");
+
+    togglePassword.addEventListener("click", () => {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            togglePassword.textContent = "Hide";
+        } else {
+            passwordInput.type = "password";
+            togglePassword.textContent = "Show";
+        }
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const usernameVal = usernameInput.value.trim();
+        const passwordVal = passwordInput.value.trim();
+
+        if (!usernameVal || !passwordVal) {
+            errorText.textContent = "Please enter username and password.";
+            errorText.style.display = "block";
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/api/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: usernameVal, password: passwordVal })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                errorText.textContent = data.message || "Invalid username or password.";
+                errorText.style.display = "block";
+                return;
+            }
+
+            errorText.style.display = "none";
+            window.location.href = "home.html";
+
+        } catch (err) {
+            console.error("Login error:", err);
+            errorText.textContent = "Cannot reach server. Please check backend.";
+            errorText.style.display = "block";
+        }
+    });
+</script>
+
+</body>
 </html>

@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Money Collection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <!-- PWA manifest & theme -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ff8a00">
+
+    <!-- iOS (iPhone / iPad) PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="assets/images/logo-192.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--orange);
+            background-color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .back-btn:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Form card */
+        .card {
+            background-color: var(--bg-light);
+            border-radius: 16px;
+            padding: 1rem 1rem 0.9rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-input {
+            border-radius: 999px;
+            border: 1px solid #dcdcdc;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        .form-input.error {
+            border-color: #c62828;
+            box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.18);
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .voice-btn {
+            border-radius: 999px;
+            border: 1px solid var(--orange);
+            background-color: #fff;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .voice-btn.listening {
+            background-color: var(--orange);
+            color: #fff;
+        }
+
+        /* Name suggestions (autocomplete) */
+        .name-group {
+            position: relative;
+        }
+
+        .suggestions-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 2px;
+            background-color: #fff;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+        }
+
+        .suggestion-row {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.88rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+        }
+
+        .suggestion-row:hover {
+            background-color: #f5f5f5;
+        }
+
+        .suggestion-name {
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .suggestion-right {
+            text-align: right;
+            font-size: 0.82rem;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .suggestion-tag {
+            display: inline-block;
+            margin-left: 0.4rem;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        /* Payment checkboxes layout */
+        .payment-options {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.9rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #e7e7e7;
+            color: #444;
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+        }
+
+        .btn[disabled] {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #c62828;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: inline-flex;
+            border-radius: 999px;
+            background-color: #f3f3f3;
+            padding: 0.15rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .tab-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.45rem 1.1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: transparent;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.25);
+        }
+
+        /* List card common */
+        .list-card {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .empty-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.7rem 0.3rem 0.4rem;
+        }
+
+        /* Money list */
+        .list-header-row {
+            display: grid;
+            grid-template-columns: 2fr 1.3fr 1fr 1fr 1.2fr;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-bottom: 1px solid #eee;
+        }
+
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 1.3fr 1fr 1fr 1.2fr;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f4f4f4;
+            align-items: center;
+            column-gap: 0.5rem;
+        }
+
+        .entry-row:last-child {
+            border-bottom: none;
+        }
+
+        .entry-name {
+            font-weight: 500;
+        }
+
+        .entry-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .entry-mobile {
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .entry-amount {
+            font-weight: 600;
+        }
+
+        .entry-payment {
+            font-size: 0.85rem;
+            color: #444;
+        }
+
+        .entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        .icon-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: 50%;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background-color 0.15s, transform 0.08s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .icon-edit {
+            color: #1565c0;
+        }
+
+        .icon-delete {
+            color: #c62828;
+        }
+
+        .icon-share {
+            color: #1b8d3b;
+        }
+
+        .icon-btn:hover {
+            background-color: #f3f3f3;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1rem;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid #dcdcdc;
+            font-size: 0.9rem;
+            min-width: 180px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        /* Items list */
+        .items-header-row,
+        .items-row {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            padding: 0.45rem 0.9rem;
+            column-gap: 0.5rem;
+            align-items: center;
+        }
+
+        .items-header-row {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-bottom: 1px solid #eee;
+        }
+
+        .items-row {
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .items-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        .item-name {
+            font-weight: 500;
+        }
+
+        .item-text {
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        @media (min-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1.6fr 1.3fr;
+                align-items: flex-end;
+            }
+
+            .actions-row {
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-right {
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .list-header-row {
+                display: none;
+            }
+
+            .entry-row {
+                grid-template-columns: 1.7fr 1.3fr;
+                grid-template-rows: auto auto auto;
+                row-gap: 0.2rem;
+            }
+
+            .entry-amount,
+            .entry-payment {
+                justify-self: flex-start;
+            }
+
+            .entry-actions {
+                justify-content: flex-start;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+        }
+
+        /* Tabs */
+        .entry-tabs {
+            display: inline-flex;
+            background: #f2f2f2;
+            border-radius: 999px;
+            padding: 4px;
+            margin: 0.6rem 0 0.8rem;
+        }
+
+        .entry-tab {
+            border: none;
+            background: transparent;
+            padding: 0.45rem 1.1rem;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .entry-tab.active {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(255, 138, 0, .35);
+        }
+
+        /* Tab panels */
+        .tab-panel {
+            display: none;
+            margin-top: 0.4rem;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .payment-row {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+            margin-top: 0.4rem;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'">
+            ←
+        </button>
+        <img src="assets/images/logo.png" alt="Logo" class="logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h2>Money Collection</h2>
+            <p>Ganesh Chanda</p>
+        </section>
+
+        <!-- Total summary -->
+        <section class="summary-card">
+            <div>
+                <div class="summary-title">Total Collected</div>
+                <div class="summary-value">₹ <span id="totalAmount">0</span></div>
+            </div>
+        </section>
+
+        <!-- Add / Edit form -->
+        <section class="card">
+            <h3 id="formTitle">Add New Entry</h3>
+            <form id="collectionForm" autocomplete="off" novalidate>
+                <div class="form-grid">
+                    <div class="form-group name-group" id="nameGroup">
+                        <div class="label-row">
+                            <label for="name" class="form-label">Name</label>
+                            <button type="button" class="voice-btn" id="nameMicBtn" title="Speak name">
+                                🎤
+                            </button>
+                        </div>
+                        <input type="text" id="name" class="form-input" placeholder="Ex: రమేష్" required>
+                        <!-- suggestions -->
+                        <div id="nameSuggestions" class="suggestions-panel"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobile" class="form-label">Mobile (opt)</label>
+                        <input type="tel" id="mobile" class="form-input" placeholder="10-digit mobile" maxlength="15">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dateInput" class="form-label">Date</label>
+                    <input type="date" id="dateInput" class="form-input" required>
+                </div>
+
+                <!-- Money / Items Tabs -->
+                <div class="entry-tabs">
+                    <button type="button" id="moneyTab" class="entry-tab active">Money</button>
+                    <button type="button" id="itemsTab" class="entry-tab">Items</button>
+                </div>
+
+                <!-- Payment type checkboxes + items -->
+                <!-- Money Tab Content -->
+                <div id="moneyPanel" class="tab-panel active">
+
+                    <!-- Amount (EXISTING FIELD – UNCHANGED) -->
+                    <div class="form-group">
+                        <label class="form-label">Amount (₹)</label>
+                        <input type="number" id="amount" class="form-input" placeholder="Ex: 500" />
+                    </div>
+
+                    <!-- Payment Type (EXISTING – UNCHANGED) -->
+                    <div class="form-group">
+                        <label class="form-label">Payment Type</label>
+
+                        <div class="payment-row">
+                            <label class="payment-option">
+                                <input type="checkbox" id="cash">
+                                Cash
+                            </label>
+
+                            <label class="payment-option">
+                                <input type="checkbox" id="upi">
+                                UPI
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Items Tab Content -->
+                <div id="itemsPanel" class="tab-panel">
+
+                    <!-- Items (EXISTING FIELD – UNCHANGED) -->
+                    <div class="form-group" style="position:relative;">
+                        <label for="items">Items</label>
+
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="items" class="form-input" placeholder="బియ్యం, కొబ్బరికాయలు..."
+                                style="flex:1;">
+                            <!-- Speech Button for Items -->
+                            <button type="button" class="voice-btn" id="itemsMicBtn" title="Speak items">
+                                🎤
+                            </button>
+                        </div>
+
+                        <!-- Listening status -->
+                        <p id="itemsMicStatus" style="font-size:12px; color:#ff8a00; margin-top:4px; display:none;">
+                            Listening...
+                        </p>
+                    </div>
+
+                </div>
+
+                <p class="error-text" id="errorText">
+                    Please enter a valid date (DD-MM-YYYY) and name. Amount is optional.
+                </p>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Entry</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Tabs + toolbars + lists -->
+        <section>
+            <div class="toolbar">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="money" id="tabMoney">Money</button>
+                    <button class="tab-btn" data-tab="items" id="tabItems">Items</button>
+                </div>
+
+                <!-- MONEY toolbar -->
+                <div class="toolbar-right" id="moneyToolbar">
+                    <input type="text" id="moneySearchInput" class="search-input" placeholder="Search entries...">
+                    <button id="moneyExportBtn" class="btn btn-secondary">📊 Export</button>
+                </div>
+
+                <!-- ITEMS toolbar -->
+                <div class="toolbar-right" id="itemsToolbar" style="display:none;">
+                    <input type="text" id="itemsSearchInput" class="search-input" placeholder="Search items...">
+                    <button id="itemsExportBtn" class="btn btn-secondary">📊 Export Items</button>
+                </div>
+            </div>
+
+            <!-- MONEY list -->
+            <section class="list-card" id="moneySection">
+                <div class="list-header-row">
+                    <div>Name</div>
+                    <div>Mobile</div>
+                    <div>Amount</div>
+                    <div>Payment</div>
+                    <div style="text-align:right;">Actions</div>
+                </div>
+
+                <div id="entriesContainer">
+                    <div class="empty-text" id="emptyText">No entries yet. Add first collection above.</div>
+                </div>
+            </section>
+
+            <!-- ITEMS list -->
+            <section class="list-card" id="itemsSection" style="display:none;">
+                <div class="items-header-row">
+                    <div>Name</div>
+                    <div>Items</div>
+                </div>
+                <div id="itemsContainer">
+                    <div class="empty-text" id="itemsEmptyText">No items entries yet.</div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <!-- XLSX library for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- PWA: Register service worker (no offline caching in sw file) -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker
+                    .register("/service-worker.js")
+                    .then(reg => {
+                        console.log("Service worker registered:", reg.scope);
+                    })
+                    .catch(err => {
+                        console.error("Service worker registration failed:", err);
+                    });
+            });
+        }
+    </script>
+
+    <script>
+        // LOCAL dev + deploy support
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const form = document.getElementById("collectionForm");
+        const nameInput = document.getElementById("name");
+        const mobileInput = document.getElementById("mobile");
+        const amountInput = document.getElementById("amount");
+        const dateInput = document.getElementById("dateInput");
+        const paymentCashCheckbox = document.getElementById("cash");
+        const paymentUpiCheckbox = document.getElementById("upi");
+        const itemsInput = document.getElementById("items");
+
+        const errorText = document.getElementById("errorText");
+        const entriesContainer = document.getElementById("entriesContainer");
+        const emptyText = document.getElementById("emptyText");
+        const totalAmountSpan = document.getElementById("totalAmount");
+        const submitBtn = document.getElementById("submitBtn");
+        const formTitle = document.getElementById("formTitle");
+        const clearBtn = document.getElementById("clearBtn");
+        const micBtn = document.getElementById("nameMicBtn");
+
+        const tabMoney = document.getElementById("tabMoney");
+        const tabItems = document.getElementById("tabItems");
+        const moneySection = document.getElementById("moneySection");
+        const itemsSection = document.getElementById("itemsSection");
+        const moneyToolbar = document.getElementById("moneyToolbar");
+        const itemsToolbar = document.getElementById("itemsToolbar");
+
+        const moneySearchInput = document.getElementById("moneySearchInput");
+        const itemsSearchInput = document.getElementById("itemsSearchInput");
+        const moneyExportBtn = document.getElementById("moneyExportBtn");
+        const itemsExportBtn = document.getElementById("itemsExportBtn");
+        const itemsContainer = document.getElementById("itemsContainer");
+        const itemsEmptyText = document.getElementById("itemsEmptyText");
+
+        const nameSuggestionsEl = document.getElementById("nameSuggestions");
+        const nameGroupEl = document.getElementById("nameGroup");
+
+        const itemsMicBtn = document.getElementById("itemsMicBtn");
+        const itemsMicStatus = document.getElementById("itemsMicStatus");
+
+        let entries = [];
+        let editingIndex = null;
+
+        // Suggestions data from JSON files
+        let suggestionData = [];
+
+        // --- DATE HELPERS (DD-MM-YYYY) ---
+
+        function todayDDMMYYYY() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, "0");
+            const mm = String(now.getMonth() + 1).padStart(2, "0");
+            const yyyy = now.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+        }
+
+        function getTodayISO() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, "0");
+            const dd = String(today.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`; // required for type="date"
+        }
+
+        function ddmmyyyyToISO(ddmmyyyy) {
+            if (!ddmmyyyy) return "";
+            const [d, m, y] = ddmmyyyy.split("-");
+            return `${y}-${m}-${d}`;
+        }
+
+        function parseDDMMYYYY(str) {
+            if (!str) return null;
+            const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(str.trim());
+            if (!m) return null;
+
+            const day = Number(m[1]);
+            const month = Number(m[2]);
+            const year = Number(m[3]);
+
+            if (year < 1900 || year > 9999) return null;
+            if (month < 1 || month > 12) return null;
+            if (day < 1 || day > 31) return null;
+
+            const d = new Date(year, month - 1, day);
+            if (
+                d.getFullYear() !== year ||
+                d.getMonth() !== month - 1 ||
+                d.getDate() !== day
+            ) {
+                return null;
+            }
+            return { day, month, year, dateObj: d };
+        }
+
+        // Display helper – if old data in YYYY-MM-DD, convert
+        function formatDateDisplay(raw) {
+            if (!raw) return "";
+            const s = raw.trim();
+            if (/^\d{2}-\d{2}-\d{4}$/.test(s)) return s;
+
+            const parts = s.split("-");
+            if (parts.length === 3 && parts[0].length === 4) {
+                const [y, m, d] = parts;
+                return `${d}-${m}-${y}`;
+            }
+            return s;
+        }
+
+        // Set today initially
+        dateInput.value = getTodayISO();
+
+        function resetForm() {
+            nameInput.value = "";
+            mobileInput.value = "";
+            amountInput.value = "";
+            dateInput.value = todayDDMMYYYY();
+            paymentCashCheckbox.checked = false;
+            paymentUpiCheckbox.checked = false;
+            itemsInput.value = "";
+            errorText.style.display = "none";
+            errorText.textContent = "Please enter a valid date (DD-MM-YYYY) and name. Amount is optional.";
+            [dateInput, nameInput, amountInput].forEach(el => el.classList.remove("error"));
+            editingIndex = null;
+            submitBtn.textContent = "Add Entry";
+            formTitle.textContent = "Add New Entry";
+        }
+
+        function paymentLabel(paymentType) {
+            if (!paymentType) return "-";
+            const hasCash = paymentType.includes("cash");
+            const hasUpi = paymentType.includes("upi");
+
+            if (hasCash && hasUpi) return "Cash+UPI";
+            if (hasCash) return "Cash";
+            if (hasUpi) return "UPI";
+            return "-";
+        }
+
+        function updateTotal() {
+            const total = entries.reduce((sum, item) => sum + (item.amount || 0), 0);
+            totalAmountSpan.textContent = total.toString();
+        }
+
+        function renderMoneyEntries() {
+            entriesContainer.innerHTML = "";
+
+            // Money tab shows ONLY entries with NO items
+            const moneyEntries = entries.filter(e => !(e.items || "").trim());
+
+            const filter = moneySearchInput.value.trim().toLowerCase();
+
+            const visibleEntries = moneyEntries.filter(e => {
+                if (!filter) return true;
+                const nameMatch = (e.name || "").toLowerCase().includes(filter);
+                const mobileMatch = (e.mobile || "").toLowerCase().includes(filter);
+                return nameMatch || mobileMatch;
+            });
+
+            if (moneyEntries.length === 0) {
+                emptyText.textContent = "No money entries yet.";
+                emptyText.style.display = "block";
+                entriesContainer.appendChild(emptyText);
+                updateTotal();
+                return;
+            }
+
+            if (visibleEntries.length === 0) {
+                emptyText.textContent = "No entries match your search.";
+                emptyText.style.display = "block";
+                entriesContainer.appendChild(emptyText);
+                updateTotal();
+                return;
+            }
+
+            emptyText.style.display = "none";
+
+            visibleEntries.forEach(entry => {
+                const row = document.createElement("div");
+                row.className = "entry-row";
+
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "entry-name";
+                nameDiv.innerHTML =
+                    `<span>${entry.name}</span>` +
+                    `<span class="entry-date">${formatDateDisplay(entry.date)}</span>`;
+
+                const mobileDiv = document.createElement("div");
+                mobileDiv.className = "entry-mobile";
+                mobileDiv.textContent = entry.mobile || "-";
+
+                const amountDiv = document.createElement("div");
+                amountDiv.className = "entry-amount";
+                amountDiv.textContent = "₹ " + (entry.amount || 0).toString();
+
+                const paymentDiv = document.createElement("div");
+                paymentDiv.className = "entry-payment";
+                paymentDiv.textContent = paymentLabel(entry.paymentType);
+
+                const actionsDiv = document.createElement("div");
+                actionsDiv.className = "entry-actions";
+
+                const realIndex = entries.indexOf(entry);
+
+                const editBtn = document.createElement("button");
+                editBtn.className = "icon-btn icon-edit";
+                editBtn.type = "button";
+                editBtn.title = "Edit";
+                editBtn.innerHTML = "✏️";
+                editBtn.dataset.action = "edit";
+                editBtn.dataset.index = realIndex.toString();
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "icon-btn icon-delete";
+                deleteBtn.type = "button";
+                deleteBtn.title = "Delete";
+                deleteBtn.innerHTML = "🗑️";
+                deleteBtn.dataset.action = "delete";
+                deleteBtn.dataset.index = realIndex.toString();
+
+                const shareBtn = document.createElement("button");
+                shareBtn.className = "icon-btn icon-share";
+                shareBtn.type = "button";
+                shareBtn.title = "Share on WhatsApp";
+                shareBtn.innerHTML = "📤";
+                shareBtn.dataset.action = "share";
+                shareBtn.dataset.index = realIndex.toString();
+
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                actionsDiv.appendChild(shareBtn);
+
+                row.appendChild(nameDiv);
+                row.appendChild(mobileDiv);
+                row.appendChild(amountDiv);
+                row.appendChild(paymentDiv);
+                row.appendChild(actionsDiv);
+
+                entriesContainer.appendChild(row);
+            });
+
+            updateTotal();
+        }
+
+        function renderItemsEntries() {
+            itemsContainer.innerHTML = "";
+
+            const filter = itemsSearchInput.value.trim().toLowerCase();
+
+            const itemsEntries = entries.filter(e => (e.items || "").trim() !== "");
+
+            const visibleItems = itemsEntries.filter(e => {
+                if (!filter) return true;
+                const nameMatch = (e.name || "").toLowerCase().includes(filter);
+                const itemsMatch = (e.items || "").toLowerCase().includes(filter);
+                return nameMatch || itemsMatch;
+            });
+
+            if (itemsEntries.length === 0) {
+                itemsEmptyText.textContent = "No items entries yet.";
+                itemsEmptyText.style.display = "block";
+                itemsContainer.appendChild(itemsEmptyText);
+                return;
+            }
+
+            if (visibleItems.length === 0) {
+                itemsEmptyText.textContent = "No items match your search.";
+                itemsEmptyText.style.display = "block";
+                itemsContainer.appendChild(itemsEmptyText);
+                return;
+            }
+
+            itemsEmptyText.style.display = "none";
+
+            visibleItems.forEach(entry => {
+                const row = document.createElement("div");
+                row.className = "items-row";
+
+                // For items row, we need a 3-column layout now (Name, Items, Actions)
+                // Override grid template for this row
+                row.style.gridTemplateColumns = "1.5fr 2fr 1.2fr";
+
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "item-name";
+                nameDiv.innerHTML = `<span>${entry.name}</span><span class="entry-date">${formatDateDisplay(entry.date)}</span>`;
+
+                const itemsDiv = document.createElement("div");
+                itemsDiv.className = "item-text";
+                itemsDiv.textContent = entry.items;
+
+                const actionsDiv = document.createElement("div");
+                actionsDiv.className = "item-actions";
+
+                const realIndex = entries.indexOf(entry);
+
+                const editBtn = document.createElement("button");
+                editBtn.className = "icon-btn icon-edit";
+                editBtn.type = "button";
+                editBtn.title = "Edit";
+                editBtn.innerHTML = "✏️";
+                editBtn.dataset.action = "edit";
+                editBtn.dataset.index = realIndex.toString();
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "icon-btn icon-delete";
+                deleteBtn.type = "button";
+                deleteBtn.title = "Delete";
+                deleteBtn.innerHTML = "🗑️";
+                deleteBtn.dataset.action = "delete";
+                deleteBtn.dataset.index = realIndex.toString();
+
+                const shareBtn = document.createElement("button");
+                shareBtn.className = "icon-btn icon-share";
+                shareBtn.type = "button";
+                shareBtn.title = "Share Item Receipt";
+                shareBtn.innerHTML = "📤";
+                shareBtn.dataset.action = "share";
+                shareBtn.dataset.index = realIndex.toString();
+
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                actionsDiv.appendChild(shareBtn);
+
+                row.appendChild(nameDiv);
+                row.appendChild(itemsDiv);
+                row.appendChild(actionsDiv);
+
+                itemsContainer.appendChild(row);
+            });
+        }
+
+        async function loadEntriesFromServer() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const selectedYear = urlParams.get("year") || localStorage.getItem("selectedYear") || new Date().getFullYear();
+                const res = await fetch(`${API_BASE}/api/money?year=${selectedYear}`);
+
+                if (!res.ok) {
+                    const text = await res.text().catch(() => "");
+                    console.error("Server error body:", text);
+                    alert(`Error loading data from server. Status: ${res.status}`);
+                    return;
+                }
+
+                const data = await res.json();
+
+                // Keep backend order (already sorted by date & createdAt)
+                entries = (Array.isArray(data) ? data : []).map(e => ({
+                    _id: e._id,
+                    name: e.name,
+                    mobile: e.mobile,
+                    amount: e.amount,
+                    date: e.date, // expected DD-MM-YYYY from backend
+                    paymentType: e.paymentType || "",
+                    items: e.items || ""
+                }));
+
+                renderMoneyEntries();
+                renderItemsEntries();
+            } catch (err) {
+                console.error("Network error while loading entries:", err);
+                alert("Could not reach server at http://localhost:5000. Is it running?");
+            }
+        }
+
+        // ---- Suggestions from 2025money.json & 2025items.json ----
+        function parseRupeeAmount(str) {
+            if (!str) return 0;
+            const digits = str.replace(/[^\d]/g, "");
+            const n = parseInt(digits, 10);
+            return isNaN(n) ? 0 : n;
+        }
+
+        async function loadSuggestionData() {
+            // 2025money.json
+            try {
+                const res = await fetch("assets/data/2025money.json");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            const name = item.Name || item.name || "";
+                            if (!name) return;
+                            const amountStr = item.Amount || item.amount || "";
+                            const amountNum = parseRupeeAmount(amountStr);
+                            const preview = amountNum ? `₹ ${amountNum}` : amountStr;
+                            suggestionData.push({
+                                name,
+                                preview,
+                                type: "money"
+                            });
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading 2025money suggestions:", e);
+            }
+
+            // 2025items.json (if present)
+            try {
+                const res = await fetch("assets/data/2025items.json");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            const name = item.Name || item.name || "";
+                            const itemsText = item.Items || item.items || item.Item || item.item || "";
+                            if (!name || !itemsText) return;
+                            suggestionData.push({
+                                name,
+                                preview: itemsText,
+                                type: "item"
+                            });
+                        });
+                    }
+                }
+            } catch (e) {
+                // If file not there, silently ignore
+                console.warn("2025items.json not found or failed to load.", e);
+            }
+        }
+
+        function hideNameSuggestions() {
+            nameSuggestionsEl.style.display = "none";
+        }
+
+        function showNameSuggestions() {
+            const query = nameInput.value.trim().toLowerCase();
+            nameSuggestionsEl.innerHTML = "";
+
+            if (!query) {
+                hideNameSuggestions();
+                return;
+            }
+
+            const matches = suggestionData
+                .filter(s => s.name.toLowerCase().includes(query))
+                .slice(0, 8);
+
+            if (!matches.length) {
+                hideNameSuggestions();
+                return;
+            }
+
+            matches.forEach(s => {
+                const row = document.createElement("div");
+                row.className = "suggestion-row";
+
+                const left = document.createElement("div");
+                left.className = "suggestion-name";
+                left.textContent = s.name;
+
+                const right = document.createElement("div");
+                right.className = "suggestion-right";
+                right.textContent = s.preview || "";
+
+                const tag = document.createElement("span");
+                tag.className = "suggestion-tag";
+                tag.textContent = s.type === "money" ? "2025 Money" : "2025 Items";
+
+                right.appendChild(tag);
+
+                row.appendChild(left);
+                row.appendChild(right);
+
+                row.addEventListener("click", () => {
+                    nameInput.value = s.name;
+                    if (s.type === "money") {
+                        const digits = s.preview.replace(/[^\d]/g, "");
+                        amountInput.value = digits || "";
+                    } else if (s.type === "item") {
+                        itemsInput.value = s.preview;
+                    }
+                    hideNameSuggestions();
+                    nameInput.focus();
+                });
+
+                nameSuggestionsEl.appendChild(row);
+            });
+
+            nameSuggestionsEl.style.display = "block";
+        }
+
+        nameInput.addEventListener("input", showNameSuggestions);
+        nameInput.addEventListener("focus", showNameSuggestions);
+
+        document.addEventListener("click", (ev) => {
+            if (!nameGroupEl.contains(ev.target)) {
+                hideNameSuggestions();
+            }
+        });
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = nameInput.value.trim();
+            const mobile = mobileInput.value.trim();
+            const selectedDate = dateInput.value;
+            const amount = amountInput.value.trim();
+            const items = itemsInput.value.trim();
+
+            const paymentTypes = [];
+            if (paymentCashCheckbox.checked) paymentTypes.push("cash");
+            if (paymentUpiCheckbox.checked) paymentTypes.push("upi");
+            const paymentType = paymentTypes.join(",");
+
+            [dateInput, nameInput, amountInput].forEach(el => el.classList.remove("error"));
+
+            errorText.style.display = "none";
+
+            // COMMON validation
+            if (!name) {
+                nameInput.classList.add("error");
+                errorText.textContent = "Please enter a name.";
+                errorText.style.display = "block";
+                return;
+            }
+
+            if (!selectedDate) {
+                errorText.textContent = "Please enter date.";
+                errorText.style.display = "block";
+                return;
+            }
+
+            // Convert to DD-MM-YYYY for backend
+            const [y, m, d] = selectedDate.split("-");
+            const date = `${d}-${m}-${y}`;
+
+            // TAB-SPECIFIC validation
+            if (activeEntryTab === "money") {
+
+                if (!amount || Number(amount) <= 0) {
+                    amountInput.classList.add("error");
+                    errorText.textContent = "Please enter valid amount.";
+                    errorText.style.display = "block";
+                    return;
+                }
+
+                if (!paymentCashCheckbox.checked && !paymentUpiCheckbox.checked) {
+                    errorText.textContent = "Select payment type.";
+                    errorText.style.display = "block";
+                    return;
+                }
+
+            }
+
+            if (activeEntryTab === "items") {
+
+                if (!items) {
+                    errorText.textContent = "Please enter items.";
+                    errorText.style.display = "block";
+                    return;
+                }
+
+            }
+
+            errorText.style.display = "none";
+
+            let finalAmount = null;
+            if (activeEntryTab === "money") {
+                finalAmount = Math.round(Number(amount));
+            }
+
+            const basePayload = {
+                name,
+                mobile,
+                date: date, // DD-MM-YYYY to backend
+                paymentType,
+                items
+            };
+
+            if (finalAmount !== null) {
+                basePayload.amount = finalAmount;
+            }
+
+            // Add year to payload
+            const selectedYear = localStorage.getItem("selectedYear") || new Date().getFullYear();
+            basePayload.year = Number(selectedYear);
+
+            try {
+                if (editingIndex !== null) {
+                    const existing = entries[editingIndex];
+                    if (!existing || !existing._id) {
+                        alert("Cannot update: missing ID");
+                        return;
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/money/${existing._id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(basePayload)
+                    });
+
+                    if (!res.ok) throw new Error("Failed to update entry");
+                } else {
+                    const res = await fetch(`${API_BASE}/api/money`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(basePayload)
+                    });
+
+                    if (!res.ok) throw new Error("Failed to create entry");
+                }
+
+                // Reload from backend so order = latest first
+                await loadEntriesFromServer();
+                resetForm();
+            } catch (err) {
+                console.error("Save error:", err);
+                alert("Error saving entry to server.");
+            }
+        });
+
+        clearBtn.addEventListener("click", resetForm);
+
+        moneySearchInput.addEventListener("input", renderMoneyEntries);
+        itemsSearchInput.addEventListener("input", renderItemsEntries);
+
+        // MONEY export (only pure money entries, NO items column)
+        moneyExportBtn.addEventListener("click", function () {
+            const moneyEntries = entries.filter(e => !(e.items || "").trim());
+            if (moneyEntries.length === 0) {
+                alert("No money data available to export.");
+                return;
+            }
+
+            const excelData = moneyEntries.map(e => ({
+                Name: e.name,
+                Mobile: e.mobile || "",
+                Amount: e.amount || 0,
+                Date: formatDateDisplay(e.date),
+                PaymentType: paymentLabel(e.paymentType)
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Money Collection");
+
+            const todayStr = todayDDMMYYYY();
+            const fileName = `money_collection_${todayStr}.xlsx`;
+
+            XLSX.writeFile(workbook, fileName);
+        });
+
+        // ITEMS export (NO payment method column)
+        itemsExportBtn.addEventListener("click", function () {
+            const itemsEntries = entries.filter(e => (e.items || "").trim() !== "");
+            if (itemsEntries.length === 0) {
+                alert("No items data available to export.");
+                return;
+            }
+
+            const excelData = itemsEntries.map(e => ({
+                Name: e.name,
+                Items: e.items,
+                Date: formatDateDisplay(e.date)
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Items");
+
+            const todayStr = todayDDMMYYYY();
+            const fileName = `items_${todayStr}.xlsx`;
+
+            XLSX.writeFile(workbook, fileName);
+        });
+
+        // Money list actions (edit/delete/share)
+        entriesContainer.addEventListener("click", async function (e) {
+            const target = e.target;
+            if (!(target instanceof HTMLButtonElement)) return;
+
+            const action = target.dataset.action;
+            const indexStr = target.dataset.index;
+            if (indexStr === undefined) return;
+
+            const index = parseInt(indexStr, 10);
+            const entry = entries[index];
+            if (!entry) return;
+
+            if (action === "edit") {
+                nameInput.value = entry.name;
+                mobileInput.value = entry.mobile;
+                amountInput.value = entry.amount ? entry.amount.toString() : "";
+                dateInput.value = entry.date ? ddmmyyyyToISO(entry.date) : getTodayISO();
+
+                const pType = entry.paymentType || "";
+                paymentCashCheckbox.checked = pType.includes("cash");
+                paymentUpiCheckbox.checked = pType.includes("upi");
+
+                itemsInput.value = entry.items || "";
+
+                editingIndex = index;
+                submitBtn.textContent = "Update Entry";
+                formTitle.textContent = "Edit Entry";
+                errorText.style.display = "none";
+                [dateInput, nameInput, amountInput].forEach(el => el.classList.remove("error"));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (action === "delete") {
+                const ok = confirm("Delete this entry?");
+                if (!ok) return;
+
+                try {
+                    if (entry._id) {
+                        const res = await fetch(`${API_BASE}/api/money/${entry._id}`, {
+                            method: "DELETE"
+                        });
+                        if (!res.ok) throw new Error("Delete failed");
+                    }
+                    await loadEntriesFromServer();
+                    resetForm();
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    alert("Error deleting entry from server.");
+                }
+            } else if (action === "share") {
+                // Call the new image receipt share function
+                shareImageReceipt(entry.name, entry.date, entry.amount || 0, entry.mobile);
+            }
+        });
+
+        // Item list actions (edit/delete/share)
+        itemsContainer.addEventListener("click", async function (e) {
+            const target = e.target;
+            if (!(target instanceof HTMLButtonElement)) return;
+
+            const action = target.dataset.action;
+            const indexStr = target.dataset.index;
+            if (indexStr === undefined) return;
+
+            const index = parseInt(indexStr, 10);
+            const entry = entries[index];
+            if (!entry) return;
+
+            if (action === "edit") {
+                nameInput.value = entry.name;
+                mobileInput.value = entry.mobile || "";
+                amountInput.value = ""; // Clear amount for item edit
+                dateInput.value = entry.date ? ddmmyyyyToISO(entry.date) : getTodayISO();
+
+                // Switch to Items Tab
+                activateTab("items");
+                itemsInput.value = entry.items || "";
+
+                editingIndex = index;
+                submitBtn.textContent = "Update Entry";
+                formTitle.textContent = "Edit Entry";
+                errorText.style.display = "none";
+                [dateInput, nameInput, amountInput].forEach(el => el.classList.remove("error"));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+
+            } else if (action === "delete") {
+                const ok = confirm("Delete this items entry?");
+                if (!ok) return;
+
+                try {
+                    if (entry._id) {
+                        const res = await fetch(`${API_BASE}/api/money/${entry._id}`, {
+                            method: "DELETE"
+                        });
+                        if (!res.ok) throw new Error("Delete failed");
+                    }
+                    await loadEntriesFromServer();
+                    resetForm();
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    alert("Error deleting entry from server.");
+                }
+            } else if (action === "share") {
+                shareItemReceipt(entry.name, entry.date, entry.items, entry.mobile);
+            }
+        });
+
+        // Tabs switching
+        function activateTab(tabName) {
+            if (tabName === "money") {
+                tabMoney.classList.add("active");
+                tabItems.classList.remove("active");
+                moneySection.style.display = "";
+                moneyToolbar.style.display = "";
+                itemsSection.style.display = "none";
+                itemsToolbar.style.display = "none";
+            } else {
+                tabItems.classList.add("active");
+                tabMoney.classList.remove("active");
+                moneySection.style.display = "none";
+                moneyToolbar.style.display = "none";
+                itemsSection.style.display = "";
+                itemsToolbar.style.display = "";
+            }
+        }
+
+        tabMoney.addEventListener("click", () => activateTab("money"));
+        tabItems.addEventListener("click", () => activateTab("items"));
+
+        // 🎤 Universal Mic for NAME
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        let recognition = null;
+
+        if (!isIOS && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = "te-IN";
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                micBtn.classList.add("listening");
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove("listening");
+            };
+
+            recognition.onerror = () => {
+                micBtn.classList.remove("listening");
+            };
+
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                nameInput.value = text;
+                nameInput.focus();
+                showNameSuggestions();
+            };
+
+            micBtn.addEventListener("click", () => {
+                try { recognition.start(); } catch (err) { }
+            });
+
+        } else {
+            micBtn.addEventListener("click", () => {
+                nameInput.focus();
+                alert(
+                    "🎤 iPhone Speech Input\n\n" +
+                    "Apple does not allow in-browser speech recognition.\n" +
+                    "Please tap the microphone button on your keyboard to speak the name."
+                );
+            });
+        }
+
+        // 🎤 Items mic
+        let itemsRecognition = null;
+
+        if (!isIOS && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            itemsRecognition = new SpeechRecognition();
+            itemsRecognition.lang = "te-IN";
+            itemsRecognition.interimResults = false;
+
+            itemsRecognition.onstart = () => {
+                itemsMicBtn.classList.add("listening");
+                itemsMicStatus.style.display = "block";
+            };
+
+            itemsRecognition.onend = () => {
+                itemsMicBtn.classList.remove("listening");
+                itemsMicStatus.style.display = "none";
+            };
+
+            itemsRecognition.onerror = () => {
+                itemsMicBtn.classList.remove("listening");
+                itemsMicStatus.style.display = "none";
+            };
+
+            itemsRecognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                itemsInput.value = text;
+                itemsInput.focus();
+            };
+
+            itemsMicBtn.addEventListener("click", () => {
+                try { itemsRecognition.start(); } catch (err) { }
+            });
+
+        } else {
+            itemsMicBtn.addEventListener("click", () => {
+                itemsInput.focus();
+                alert(
+                    "🛒 iPhone Items Speech Input\n\n" +
+                    "To enter items by voice, please tap the microphone icon on your iPhone keyboard.\n" +
+                    "Safari does not support direct in-browser speech recognition."
+                );
+            });
+        }
+
+        // Initial loads
+        loadEntriesFromServer();
+        loadSuggestionData();
+
+        let activeEntryTab = "money"; // default
+
+        const moneyTab = document.getElementById("moneyTab");
+        const itemsTab = document.getElementById("itemsTab");
+        const moneyPanel = document.getElementById("moneyPanel");
+        const itemsPanel = document.getElementById("itemsPanel");
+
+        moneyTab.onclick = () => {
+            activeEntryTab = "money";
+            moneyTab.classList.add("active");
+            itemsTab.classList.remove("active");
+            moneyPanel.classList.add("active");
+            itemsPanel.classList.remove("active");
+        };
+
+        itemsTab.onclick = () => {
+            activeEntryTab = "items";
+            itemsTab.classList.add("active");
+            moneyTab.classList.remove("active");
+            itemsPanel.classList.add("active");
+            moneyPanel.classList.remove("active");
+        };
+
+        // Receipt image sharing function
+        async function shareImageReceipt(name, date, amount, mobile) {
+            // Load logo first
+            const logo = new Image();
+            logo.crossOrigin = "anonymous";
+            logo.src = "assets/images/logo.jpg";
+
+            logo.onload = function () {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                // Set canvas size (optimized for mobile sharing)
+                canvas.width = 800;
+                canvas.height = 1000;
+
+                // ===== BACKGROUND GRADIENT =====
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, "#ff8a00");
+                gradient.addColorStop(1, "#e67600");
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // ===== WHITE CARD AREA =====
+                const cardX = 40;
+                const cardY = 100;
+                const cardWidth = canvas.width - 80;
+                const cardHeight = canvas.height - 200;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 10;
+                ctx.fillRect(cardX, cardY, cardWidth, cardHeight);
+                ctx.shadowColor = "transparent";
+                ctx.shadowBlur = 0;
+
+                // ===== LOGO =====
+                const logoSize = 120;
+                const logoX = (canvas.width - logoSize) / 2;
+                const logoY = cardY + 30;
+
+                // Draw circular clipping path for logo
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+                ctx.restore();
+
+                // ===== HEADER =====
+                ctx.fillStyle = "#222";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("వీవర్స్ కాలనీ", canvas.width / 2, cardY + logoSize + 60);
+
+                ctx.font = "bold 28px Arial, sans-serif";
+                ctx.fillText("వినాయక చవితి కమిటీ", canvas.width / 2, cardY + logoSize + 95);
+
+                // Decorative line
+                ctx.strokeStyle = "#ff8a00";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cardX + 100, cardY + logoSize + 120);
+                ctx.lineTo(canvas.width - cardX - 100, cardY + logoSize + 120);
+                ctx.stroke();
+
+                // ===== RECEIPT TITLE =====
+                ctx.fillStyle = "#ff8a00";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.fillText("రసీదు / Receipt", canvas.width / 2, cardY + logoSize + 170);
+
+                // ===== DETAILS SECTION =====
+                const detailsStartY = cardY + logoSize + 250;
+                const labelX = cardX + 60;
+                const valueX = canvas.width - cardX - 60;
+                const lineHeight = 100;
+
+                // Configure text for details
+                ctx.textAlign = "left";
+
+                // Telugu labels (right section will be right-aligned)
+                ctx.fillStyle = "#555";
+                ctx.font = "600 32px Arial, sans-serif";
+
+                // ROW 1: దాత పేరు (Donor Name)
+                let currentY = detailsStartY;
+                ctx.fillText("దాత పేరు:", labelX, currentY);
+
+                ctx.fillStyle = "#000";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(name, valueX, currentY);
+
+                // ROW 2: తేది (Date)
+                currentY += lineHeight;
+                ctx.fillStyle = "#555";
+                ctx.font = "600 32px Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText("తేది:", labelX, currentY);
+
+                ctx.fillStyle = "#000";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(formatDateDisplay(date), valueX, currentY);
+
+                // ROW 3: రుసుము (Amount)
+                currentY += lineHeight;
+                ctx.fillStyle = "#555";
+                ctx.font = "600 32px Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText("రుసుము:", labelX, currentY);
+
+                ctx.fillStyle = "#ff8a00";
+                ctx.font = "bold 40px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(`₹ ${amount}`, valueX, currentY);
+
+                // ===== DECORATIVE BOX AROUND AMOUNT =====
+                ctx.strokeStyle = "#ff8a00";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 5]);
+                ctx.strokeRect(cardX + 40, currentY - 50, cardWidth - 80, 80);
+                ctx.setLineDash([]);
+
+                // ===== DATE STAMP (Bottom Right) =====
+                ctx.fillStyle = "#aaa";
+                ctx.font = "20px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(new Date().toLocaleDateString("en-IN"), valueX, cardY + cardHeight - 40);
+
+                // ===== CONVERT TO BLOB AND SHARE =====
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], `receipt_${name}_${date}.png`, { type: "image/png" });
+                    const promoText = `━━━━━━━━━━━━━━━━\nమన కాలనీ అప్డేట్స్ కోసం ఫాలో అవ్వండి\n\n▶️ YouTube:\nhttps://youtube.com/@weaverscolony9357?si=p_qOjVfDewv97FG9\n\n📸 Instagram:\nhttps://www.instagram.com/weavers_colony?igsh=enNkeHNzOWN3Y3hh\n\n💬 WhatsApp:\nhttps://chat.whatsapp.com/HDjBh0eEFxvKVcVoeqX8s0`;
+
+                    // Mobile share (WhatsApp, etc.)
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            // Copy to clipboard first
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                await navigator.clipboard.writeText(promoText);
+                            }
+
+                            // Share the image
+                            await navigator.share({
+                                files: [file],
+                                title: "రసీదు - వీవర్స్ కాలనీ వినాయక చవితి కమిటీ",
+                                text: promoText
+                            });
+
+                            setTimeout(() => {
+                                alert("📋 Promo links copied to clipboard!\nIf WhatsApp didn't add the text, you can paste it now.");
+                            }, 500);
+
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                console.log("Share cancelled or failed:", err);
+                            }
+                        }
+                    } else {
+                        // Desktop fallback - download image
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `receipt_${name}_${date}.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }
+                }, "image/png");
+            };
+
+            // Fallback if logo fails to load
+            logo.onerror = function () {
+                console.error("Failed to load logo, generating receipt without logo");
+                alert("Logo failed to load. Generating receipt without logo.");
+            };
+        }
+
+        // Receipt image sharing function for ITEMS
+        async function shareItemReceipt(name, date, items, mobile) {
+            // Load logo first
+            const logo = new Image();
+            logo.crossOrigin = "anonymous";
+            logo.src = "assets/images/logo.jpg";
+
+            logo.onload = function () {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                // Set canvas size
+                canvas.width = 800;
+                canvas.height = 1000;
+
+                // ===== BACKGROUND GRADIENT =====
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, "#ff8a00");
+                gradient.addColorStop(1, "#e67600");
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // ===== WHITE CARD AREA =====
+                const cardX = 40;
+                const cardY = 100;
+                const cardWidth = canvas.width - 80;
+                const cardHeight = canvas.height - 200;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 10;
+                ctx.fillRect(cardX, cardY, cardWidth, cardHeight);
+                ctx.shadowColor = "transparent";
+                ctx.shadowBlur = 0;
+
+                // ===== LOGO =====
+                const logoSize = 120;
+                const logoX = (canvas.width - logoSize) / 2;
+                const logoY = cardY + 30;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+                ctx.restore();
+
+                // ===== HEADER =====
+                ctx.fillStyle = "#222";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("వీవర్స్ కాలనీ", canvas.width / 2, cardY + logoSize + 60);
+
+                ctx.font = "bold 28px Arial, sans-serif";
+                ctx.fillText("వినాయక చవితి కమిటీ", canvas.width / 2, cardY + logoSize + 95);
+
+                // Decorative line
+                ctx.strokeStyle = "#ff8a00";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cardX + 100, cardY + logoSize + 120);
+                ctx.lineTo(canvas.width - cardX - 100, cardY + logoSize + 120);
+                ctx.stroke();
+
+                // ===== RECEIPT TITLE =====
+                ctx.fillStyle = "#ff8a00";
+                ctx.font = "bold 32px Arial, sans-serif";
+                ctx.fillText("వస్తువుల రసీదు / Items Receipt", canvas.width / 2, cardY + logoSize + 170);
+
+                // ===== DETAILS SECTION =====
+                const detailsStartY = cardY + logoSize + 250;
+                const labelX = cardX + 60;
+                const valueX = canvas.width - cardX - 60;
+                const lineHeight = 80;
+
+                // Configure text for details
+                ctx.textAlign = "left";
+
+                // ROW 1: దాత పేరు (Donor Name)
+                let currentY = detailsStartY;
+                ctx.fillStyle = "#555";
+                ctx.font = "600 30px Arial, sans-serif";
+                ctx.fillText("దాత పేరు:", labelX, currentY);
+
+                ctx.fillStyle = "#000";
+                ctx.font = "bold 30px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(name, valueX, currentY);
+
+                // ROW 2: తేది (Date)
+                currentY += lineHeight;
+                ctx.fillStyle = "#555";
+                ctx.font = "600 30px Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText("తేది:", labelX, currentY);
+
+                ctx.fillStyle = "#000";
+                ctx.font = "bold 30px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(formatDateDisplay(date), valueX, currentY);
+
+                // ROW 3: వస్తువులు (Items) - with word wrap
+                currentY += lineHeight;
+                ctx.fillStyle = "#555";
+                ctx.font = "600 30px Arial, sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText("వస్తువులు:", labelX, currentY);
+
+                // Items list logic (Text Wrapping)
+                ctx.fillStyle = "#ff8a00";
+                ctx.font = "bold 28px Arial, sans-serif";
+                ctx.textAlign = "left"; // Align left for items block
+
+                const maxWidth = cardWidth - 120;
+                const x = labelX;
+                let y = currentY + 50;
+                const itemLineHeight = 35;
+
+                const words = items.split(" ");
+                let line = "";
+
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + " ";
+                    const metrics = ctx.measureText(testLine);
+                    const testWidth = metrics.width;
+
+                    if (testWidth > maxWidth && n > 0) {
+                        ctx.fillText(line, x, y);
+                        line = words[n] + " ";
+                        y += itemLineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, x, y);
+
+                // ===== DATE STAMP (Bottom Right) =====
+                ctx.fillStyle = "#aaa";
+                ctx.font = "20px Arial, sans-serif";
+                ctx.textAlign = "right";
+                ctx.fillText(new Date().toLocaleDateString("en-IN"), valueX, cardY + cardHeight - 40);
+
+                // ===== CONVERT TO BLOB AND SHARE =====
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], `items_receipt_${name}_${date}.png`, { type: "image/png" });
+                    const promoText = `━━━━━━━━━━━━━━━━\nమన కాలనీ అప్డేట్స్ కోసం ఫాలో అవ్వండి\n\n▶️ YouTube:\nhttps://youtube.com/@weaverscolony9357?si=p_qOjVfDewv97FG9\n\n📸 Instagram:\nhttps://www.instagram.com/weavers_colony?igsh=enNkeHNzOWN3Y3hh\n\n💬 WhatsApp:\nhttps://chat.whatsapp.com/HDjBh0eEFxvKVcVoeqX8s0`;
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                await navigator.clipboard.writeText(promoText);
+                            }
+
+                            await navigator.share({
+                                files: [file],
+                                title: "వస్తువుల రసీదు - వీవర్స్ కాలనీ వినాయక చవితి కమిటీ",
+                                text: promoText
+                            });
+
+                            setTimeout(() => {
+                                alert("📋 Promo links copied to clipboard!\nIf WhatsApp didn't add the text, you can paste it now.");
+                            }, 500);
+
+                        } catch (err) {
+                            console.log("Share cancelled or failed:", err);
+                        }
+                    } else {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `items_receipt_${name}_${date}.png`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }
+                }, "image/png");
+            };
+
+            logo.onerror = function () {
+                alert("Logo failed to load. Generating receipt without logo.");
+            };
+        }
+    </script>
+
+</body>
+
+</html>

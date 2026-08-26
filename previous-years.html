@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Previous Years</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --text-dark: #222;
+            --text-muted: #666;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background-color: var(--white);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+
+        /* Back button */
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--orange);
+            background-color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .back-btn:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        /* Card Grid */
+        .year-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
+        }
+
+        @media (min-width: 640px) {
+            .year-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 960px) {
+            .year-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .year-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            padding: 1rem 1.1rem;
+            border-radius: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .year-left .year-label {
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+
+        .year-left .year-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .year-right .money-label {
+            font-size: 0.8rem;
+            opacity: 0.95;
+        }
+
+        .year-right .money-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: 0.15rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            padding: 1rem 0 1.2rem;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'">
+            ←
+        </button>
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+    <main class="container">
+        <h2>Previous Year Collections</h2>
+        <p>Tap a year to view detailed collection.</p>
+
+        <section class="year-grid">
+
+            <!-- YEAR 2025 COLLECTION CARD -->
+            <a href="year-money.html?year=2025" class="year-card">
+                <div class="year-left">
+                    <div class="year-label">Year</div>
+                    <div class="year-title">2025</div>
+                </div>
+                <div class="year-right">
+                    <div class="money-label">Total Collection</div>
+                    <div class="money-value" id="total2025">₹ 0</div>
+                </div>
+            </a>
+
+            <!-- YEAR 2025 ITEMS CARD -->
+            <a href="year-items.html?year=2025" class="year-card">
+                <div class="year-left">
+                    <div class="year-label">Year</div>
+                    <div class="year-title">2025 Items</div>
+                </div>
+                <div class="year-right">
+                    <div class="money-label">Items Page</div>
+                    <div class="money-value">View</div>
+                </div>
+            </a>
+
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        // Format number as Indian rupee style (with commas)
+        function formatRupees(num) {
+            return Number(num || 0).toLocaleString("en-IN");
+        }
+
+        // Parse "₹ 1,116" → 1116 (same logic as 2025money.html)
+        function parseAmountString(str) {
+            if (!str) return 0;
+            const digits = str.replace(/[^\d]/g, "");
+            const n = parseInt(digits, 10);
+            return isNaN(n) ? 0 : n;
+        }
+
+        async function load2025TotalFromJson() {
+            const totalEl = document.getElementById("total2025");
+
+            try {
+                const res = await fetch("assets/data/2025money.json");
+                if (!res.ok) {
+                    console.error("Error fetching 2025money.json:", res.status);
+                    totalEl.textContent = "₹ 0";
+                    return;
+                }
+
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    totalEl.textContent = "₹ 0";
+                    return;
+                }
+
+                const total = data.reduce((sum, entry) => {
+                    // JSON uses "Amount" like "₹ 1,116"
+                    return sum + parseAmountString(entry.Amount);
+                }, 0);
+
+                totalEl.textContent = "₹ " + formatRupees(total);
+            } catch (err) {
+                console.error("Network error loading 2025 total:", err);
+                totalEl.textContent = "₹ 0";
+            }
+        }
+
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        // Initial load – matches 2025money.html total
+        load2025TotalFromJson();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,749 @@
+<!-- events.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Events</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .card {
+            background-color: var(--bg-light);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1.5fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            padding: 0.6rem 0.75rem;
+            border-radius: 10px;
+            border: 1px solid #dcdcdc;
+            font-size: 0.9rem;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--orange);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.3rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #e7e7e7;
+            color: #444;
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+        }
+
+        .error-text {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: #d11a2a;
+            display: none;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 0.6rem;
+            gap: 0.5rem;
+        }
+
+        .list-card {
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 0.8rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .list-header-row,
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 1.4fr auto;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .list-header-row {
+            padding: 0.4rem 0.4rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+
+        .entry-row {
+            padding: 0.45rem 0.4rem;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .entry-row:last-child {
+            border-bottom: none;
+        }
+
+        .entry-name {
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .entry-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .entry-place {
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        .icon-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: 50%;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background-color 0.15s, transform 0.08s;
+        }
+
+        .icon-btn:hover {
+            background-color: #f3f3f3;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+        }
+
+        .icon-edit {
+            color: #1565c0;
+        }
+
+        .icon-delete {
+            color: #c62828;
+        }
+
+        .icon-share {
+            color: #1b8d3b;
+        }
+
+        .empty-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.7rem 0.3rem 0.4rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .list-header-row {
+                display: none;
+            }
+
+            .entry-row {
+                grid-template-columns: 1.7fr 1.3fr;
+                grid-template-rows: auto auto;
+                row-gap: 0.2rem;
+            }
+
+            .entry-actions {
+                justify-content: flex-start;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            background-color: #fff;
+            color: var(--orange);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.4rem;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 138, 0, 0.08);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'" aria-label="Go back">
+            ←
+        </button>
+
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+
+    <main class="container">
+        <section class="page-header">
+            <h2>Events</h2>
+            <p>Ganesh Events</p>
+        </section>
+
+        <!-- Summary -->
+        <section class="summary-card">
+            <div>
+                <div class="summary-title">Total Events</div>
+                <div class="summary-value" id="eventCount">0</div>
+            </div>
+        </section>
+
+        <!-- Form -->
+        <section class="card">
+            <h3 id="formTitle">Add New Event</h3>
+            <form id="eventForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="eventName" class="form-label">Event Name</label>
+                        <input type="text" id="eventName" class="form-input"
+                            placeholder="Ex: Vinayaka Pooja, Anna Daanam" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventPlace" class="form-label">Place (opt..)</label>
+                        <input type="text" id="eventPlace" class="form-input" placeholder="Ex: Main Street Pandal">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventDate" class="form-label">Date</label>
+                        <input type="date" id="eventDate" class="form-input" required>
+                    </div>
+                </div>
+
+                <p class="error-text" id="errorText">Please enter event name and date.</p>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Event</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button id="shareAllBtn" class="btn btn-secondary">📤 Share All</button>
+        </div>
+
+        <!-- List -->
+        <section class="list-card">
+            <div class="list-header-row">
+                <div>Event</div>
+                <div>Place</div>
+                <div style="text-align:right;">Actions</div>
+            </div>
+
+            <div id="entriesContainer">
+                <div class="empty-text" id="emptyText">No events yet. Add first event above.</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <script>
+        // API base (localhost in dev, same origin when hosted)
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const form = document.getElementById("eventForm");
+        const nameInput = document.getElementById("eventName");
+        const placeInput = document.getElementById("eventPlace");
+        const dateInput = document.getElementById("eventDate");
+        const errorText = document.getElementById("errorText");
+        const entriesContainer = document.getElementById("entriesContainer");
+        const emptyText = document.getElementById("emptyText");
+        const eventCountSpan = document.getElementById("eventCount");
+        const submitBtn = document.getElementById("submitBtn");
+        const formTitle = document.getElementById("formTitle");
+        const clearBtn = document.getElementById("clearBtn");
+        const shareAllBtn = document.getElementById("shareAllBtn");
+
+        let events = [];
+        let editingIndex = null;
+
+        function todayISO() {
+            return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+        }
+
+        // Convert ISO (YYYY-MM-DD) to DD-MM-YYYY for display
+        function formatDateDisplay(iso) {
+            if (!iso) return "";
+            const parts = iso.split("-");
+            if (parts.length !== 3) return iso;
+            const [y, m, d] = parts;
+            return `${d}-${m}-${y}`;
+        }
+
+        dateInput.value = todayISO();
+
+        function resetForm() {
+            nameInput.value = "";
+            placeInput.value = "";
+            dateInput.value = todayISO();
+            errorText.style.display = "none";
+            editingIndex = null;
+            submitBtn.textContent = "Add Event";
+            formTitle.textContent = "Add New Event";
+        }
+
+        function updateCount() {
+            eventCountSpan.textContent = events.length.toString();
+        }
+
+        function renderEvents() {
+            entriesContainer.innerHTML = "";
+
+            if (events.length === 0) {
+                emptyText.style.display = "block";
+                entriesContainer.appendChild(emptyText);
+                updateCount();
+                return;
+            }
+
+            emptyText.style.display = "none";
+
+            events.forEach((eventItem, index) => {
+                const row = document.createElement("div");
+                row.className = "entry-row";
+
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "entry-name";
+                nameDiv.innerHTML =
+                    `<span>${eventItem.name}</span>` +
+                    `<span class="entry-date">${formatDateDisplay(eventItem.date)}</span>`;
+
+                const placeDiv = document.createElement("div");
+                placeDiv.className = "entry-place";
+                placeDiv.textContent = eventItem.place || "-";
+
+                const actionsDiv = document.createElement("div");
+                actionsDiv.className = "entry-actions";
+
+                const editBtn = document.createElement("button");
+                editBtn.className = "icon-btn icon-edit";
+                editBtn.type = "button";
+                editBtn.title = "Edit";
+                editBtn.innerHTML = "✏️";
+                editBtn.dataset.action = "edit";
+                editBtn.dataset.index = index.toString();
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "icon-btn icon-delete";
+                deleteBtn.type = "button";
+                deleteBtn.title = "Delete";
+                deleteBtn.innerHTML = "🗑️";
+                deleteBtn.dataset.action = "delete";
+                deleteBtn.dataset.index = index.toString();
+
+                const shareBtn = document.createElement("button");
+                shareBtn.className = "icon-btn icon-share";
+                shareBtn.type = "button";
+                shareBtn.title = "Share on WhatsApp";
+                shareBtn.innerHTML = "📤";
+                shareBtn.dataset.action = "share";
+                shareBtn.dataset.index = index.toString();
+
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                actionsDiv.appendChild(shareBtn);
+
+                row.appendChild(nameDiv);
+                row.appendChild(placeDiv);
+                row.appendChild(actionsDiv);
+
+                entriesContainer.appendChild(row);
+            });
+
+            updateCount();
+        }
+
+        // Load all events from backend
+        async function loadEventsFromServer() {
+            try {
+                emptyText.textContent = "Loading events...";
+                emptyText.style.display = "block";
+
+                const selectedYear = localStorage.getItem("selectedYear") || new Date().getFullYear();
+                const res = await fetch(`${API_BASE}/api/events?year=${selectedYear}`);
+                if (!res.ok) {
+                    const txt = await res.text().catch(() => "");
+                    console.error("Error loading /api/events:", res.status, txt);
+                    emptyText.textContent = "Error loading events from server.";
+                    return;
+                }
+
+                const data = await res.json();
+                events = Array.isArray(data)
+                    ? data.map(e => ({
+                        _id: e._id,
+                        name: e.name || "",
+                        place: e.place || "",
+                        date: e.date || todayISO() // stored as YYYY-MM-DD
+                    }))
+                    : [];
+
+                renderEvents();
+            } catch (err) {
+                console.error("Network error while loading events:", err);
+                emptyText.textContent = "Could not reach server. Please check if backend is running.";
+            }
+        }
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = nameInput.value.trim();
+            const place = placeInput.value.trim();
+            const date = (dateInput.value || todayISO()).trim(); // ISO YYYY-MM-DD
+
+            if (!name || !date) {
+                errorText.style.display = "block";
+                return;
+            }
+
+            errorText.style.display = "none";
+
+            const payload = {
+                name,
+                place,
+                date,
+                year: Number(localStorage.getItem("selectedYear")) || new Date().getFullYear()
+            };
+
+            try {
+                if (editingIndex !== null) {
+                    // UPDATE existing
+                    const current = events[editingIndex];
+                    if (!current || !current._id) {
+                        alert("Cannot update: missing event ID.");
+                        return;
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/events/${current._id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error("Failed to update event");
+                    }
+
+                    const updated = await res.json();
+                    events[editingIndex] = {
+                        _id: updated._id,
+                        name: updated.name,
+                        place: updated.place || "",
+                        date: updated.date
+                    };
+                } else {
+                    // CREATE new
+                    const res = await fetch(`${API_BASE}/api/events`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error("Failed to create event");
+                    }
+
+                    const created = await res.json();
+                    events.push({
+                        _id: created._id,
+                        name: created.name,
+                        place: created.place || "",
+                        date: created.date
+                    });
+                }
+
+                resetForm();
+                renderEvents();
+            } catch (err) {
+                console.error("Save event error:", err);
+                alert("Error saving event to server.");
+            }
+        });
+
+        clearBtn.addEventListener("click", resetForm);
+
+        entriesContainer.addEventListener("click", async function (e) {
+            const target = e.target;
+            if (!(target instanceof HTMLButtonElement)) return;
+
+            const action = target.dataset.action;
+            const indexStr = target.dataset.index;
+            if (indexStr === undefined) return;
+
+            const index = parseInt(indexStr, 10);
+            const eventItem = events[index];
+            if (!eventItem) return;
+
+            if (action === "edit") {
+                nameInput.value = eventItem.name;
+                placeInput.value = eventItem.place;
+                dateInput.value = eventItem.date || todayISO(); // ISO back to input
+                editingIndex = index;
+                submitBtn.textContent = "Update Event";
+                formTitle.textContent = "Edit Event";
+                errorText.style.display = "none";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (action === "delete") {
+                if (!confirm("Delete this event?")) return;
+
+                try {
+                    if (eventItem._id) {
+                        const res = await fetch(`${API_BASE}/api/events/${eventItem._id}`, {
+                            method: "DELETE"
+                        });
+                        if (!res.ok) throw new Error("Delete failed");
+                    }
+                    events.splice(index, 1);
+                    resetForm();
+                    renderEvents();
+                } catch (err) {
+                    console.error("Delete event error:", err);
+                    alert("Error deleting event from server.");
+                }
+            } else if (action === "share") {
+                const displayDate = formatDateDisplay(eventItem.date || todayISO());
+                const placeText = eventItem.place ? eventItem.place : "-";
+                const shareText =
+                    "Event - Ganesh Demo\n" +
+                    "Event: " + eventItem.name + "\n" +
+                    "Date: " + displayDate + "\n" +
+                    "Place: " + placeText;
+
+                const url = "https://wa.me/?text=" + encodeURIComponent(shareText);
+                window.open(url, "_blank");
+            }
+        });
+
+        // Share ALL events via WhatsApp
+        shareAllBtn.addEventListener("click", function () {
+            if (events.length === 0) {
+                alert("No events to share.");
+                return;
+            }
+
+            let text = "Events - Ganesh Demo\n\n";
+            events.forEach((e, i) => {
+                const dateText = formatDateDisplay(e.date || todayISO());
+                const place = e.place ? " @ " + e.place : "";
+                text += `${i + 1}. ${e.name} - ${dateText}${place}\n`;
+            });
+
+            const url = "https://wa.me/?text=" + encodeURIComponent(text);
+            window.open(url, "_blank");
+        });
+
+        // Initial load from backend
+        loadEventsFromServer();
+    </script>
+
+</body>
+
+</html>

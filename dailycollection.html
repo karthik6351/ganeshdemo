@@ -1,0 +1,584 @@
+<!-- dailycollection.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Daily Collection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1.1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            background-color: #e7e7e7;
+            color: #444;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+        }
+
+        /* Date groups */
+        .date-group {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 0.85rem;
+            overflow: hidden;
+        }
+
+        .date-header {
+            padding: 0.6rem 0.9rem;
+            background-color: #fff8f1;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .date-label {
+            font-weight: 700;
+            /* DATE BOLD */
+            font-size: 0.95rem;
+        }
+
+        .date-total {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #c15c00;
+        }
+
+        .entry-list-header,
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            align-items: center;
+        }
+
+        .entry-list-header {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-bottom: 1px solid #eee;
+        }
+
+        .entry-row {
+            padding: 0.45rem 0.9rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .entry-row:last-child {
+            border-bottom: none;
+        }
+
+        .entry-name {
+            font-weight: 500;
+        }
+
+        .entry-amount {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .empty-text {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            padding: 0.7rem 0.3rem 0.4rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .entry-list-header {
+                display: none;
+            }
+
+            .entry-row {
+                grid-template-columns: 2fr 1fr;
+                grid-template-rows: auto;
+                row-gap: 0.15rem;
+            }
+
+            .entry-amount {
+                text-align: right;
+            }
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            background-color: #fff;
+            color: var(--orange);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.4rem;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 138, 0, 0.08);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='home.html'" aria-label="Go back">
+            ←
+        </button>
+
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+
+    <main class="container">
+        <section class="page-header">
+            <h2>Daily Collection</h2>
+            <p>View collections from <strong>Money Collection</strong> grouped by date.</p>
+        </section>
+
+        <!-- Overall summary -->
+        <section class="summary-card">
+            <div>
+                <div class="summary-title">Total Collected (All Days)</div>
+                <div class="summary-value">₹ <span id="overallTotal">0</span></div>
+            </div>
+        </section>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button id="exportBtn" class="btn">
+                📊 Export
+            </button>
+        </div>
+
+        <!-- Date groups -->
+        <section id="groupsContainer">
+            <div class="empty-text" id="emptyText">
+                Loading collection data.
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <!-- XLSX library for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        // Same pattern as other pages
+        const API_BASE = "https://wcyf-app.onrender.com";
+        // <-- replace with your real Render URL
+
+
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const groupsContainer = document.getElementById("groupsContainer");
+        const emptyText = document.getElementById("emptyText");
+        const overallTotalSpan = document.getElementById("overallTotal");
+        const exportBtn = document.getElementById("exportBtn");
+
+        // This will hold *normalized* entries used for render/export
+        let entries = [];
+
+        // Parse DD-MM-YYYY safely
+        function parseDDMMYYYY(str) {
+            if (!str) return null;
+            const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(str.trim());
+            if (!m) return null;
+
+            const day = Number(m[1]);
+            const month = Number(m[2]);
+            const year = Number(m[3]);
+
+            const d = new Date(year, month - 1, day);
+            if (
+                d.getFullYear() !== year ||
+                d.getMonth() !== month - 1 ||
+                d.getDate() !== day
+            ) {
+                return null; // invalid calendar date
+            }
+
+            return { day, month, year, dateObj: d };
+        }
+
+        // Parse YYYY-MM-DD safely
+        function parseYYYYMMDD(str) {
+            if (!str) return null;
+            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str.trim());
+            if (!m) return null;
+
+            const year = Number(m[1]);
+            const month = Number(m[2]);
+            const day = Number(m[3]);
+
+            const d = new Date(year, month - 1, day);
+            if (
+                d.getFullYear() !== year ||
+                d.getMonth() !== month - 1 ||
+                d.getDate() !== day
+            ) {
+                return null;
+            }
+
+            return { day, month, year, dateObj: d };
+        }
+
+        // Normalize any supported date string to DD-MM-YYYY and return {display, sortKey}
+        function normalizeDate(str) {
+            if (!str) return { display: "", sortKey: 0 };
+
+            const raw = String(str).trim();
+
+            // Try DD-MM-YYYY first
+            let p = parseDDMMYYYY(raw);
+            if (p) {
+                const display = `${String(p.day).padStart(2, "0")}-${String(p.month).padStart(2, "0")}-${p.year}`;
+                const sortKey = p.year * 10000 + p.month * 100 + p.day;
+                return { display, sortKey };
+            }
+
+            // Try YYYY-MM-DD
+            p = parseYYYYMMDD(raw);
+            if (p) {
+                const display = `${String(p.day).padStart(2, "0")}-${String(p.month).padStart(2, "0")}-${p.year}`;
+                const sortKey = p.year * 10000 + p.month * 100 + p.day;
+                return { display, sortKey };
+            }
+
+            // Fallback: unknown format, show as-is, sortKey = 0
+            return { display: raw, sortKey: 0 };
+        }
+
+        // Today's date as DD-MM-YYYY (for Excel filename)
+        function todayDDMMYYYY() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, "0");
+            const mm = String(now.getMonth() + 1).padStart(2, "0");
+            const yyyy = now.getFullYear();
+            return `${dd}-${mm}-${yyyy}`;
+        }
+
+        function render() {
+            groupsContainer.innerHTML = "";
+
+            if (!entries.length) {
+                emptyText.textContent = "No collection data found.";
+                emptyText.style.display = "block";
+                groupsContainer.appendChild(emptyText);
+                overallTotalSpan.textContent = "0";
+                return;
+            }
+
+            emptyText.style.display = "none";
+
+            // Group by date (normalized DD-MM-YYYY)
+            const groups = {};
+            let overallTotal = 0;
+
+            entries.forEach(e => {
+                const dateStr = (e.date || "").trim();  // already DD-MM-YYYY normalized
+                if (!dateStr) return;
+
+                if (!groups[dateStr]) {
+                    groups[dateStr] = { total: 0, items: [] };
+                }
+
+                const amountNum = Number(e.amount) || 0;
+                groups[dateStr].items.push({
+                    name: e.name || "",
+                    mobile: e.mobile || "",
+                    amount: amountNum,
+                    date: dateStr
+                });
+
+                groups[dateStr].total += amountNum;
+                overallTotal += amountNum;
+            });
+
+            overallTotalSpan.textContent = overallTotal.toString();
+
+            // Sort dates by actual calendar (latest first)
+            const sortedDates = Object.keys(groups).sort(
+                (a, b) => normalizeDate(b).sortKey - normalizeDate(a).sortKey
+            );
+
+            sortedDates.forEach(dateStr => {
+                const group = groups[dateStr];
+
+                const groupDiv = document.createElement("div");
+                groupDiv.className = "date-group";
+
+                // Header with bold date and total
+                const header = document.createElement("div");
+                header.className = "date-header";
+
+                const dateLabel = document.createElement("div");
+                dateLabel.className = "date-label";
+                dateLabel.textContent = dateStr; // DD-MM-YYYY
+
+                const dateTotal = document.createElement("div");
+                dateTotal.className = "date-total";
+                dateTotal.textContent = "₹ " + group.total.toString();
+
+                header.appendChild(dateLabel);
+                header.appendChild(dateTotal);
+
+                // List header
+                const listHeader = document.createElement("div");
+                listHeader.className = "entry-list-header";
+                listHeader.innerHTML = `
+                <div>Name</div>
+                <div style="text-align:right;">Amount</div>
+            `;
+
+                groupDiv.appendChild(header);
+                groupDiv.appendChild(listHeader);
+
+                // Rows
+                group.items.forEach(item => {
+                    const row = document.createElement("div");
+                    row.className = "entry-row";
+
+                    const nameDiv = document.createElement("div");
+                    nameDiv.className = "entry-name";
+                    nameDiv.textContent = item.name;
+
+                    const amountDiv = document.createElement("div");
+                    amountDiv.className = "entry-amount";
+                    amountDiv.textContent = "₹ " + item.amount.toString();
+
+                    row.appendChild(nameDiv);
+                    row.appendChild(amountDiv);
+
+                    groupDiv.appendChild(row);
+                });
+
+                groupsContainer.appendChild(groupDiv);
+            });
+        }
+
+        // Load entries from backend and normalize
+        async function loadEntriesFromServer() {
+            try {
+                emptyText.textContent = "Loading collection data.";
+                emptyText.style.display = "block";
+
+                const res = await fetch(`${API_BASE}/api/money`);
+                if (!res.ok) {
+                    const txt = await res.text().catch(() => "");
+                    console.error("Error loading /api/money:", res.status, txt);
+                    emptyText.textContent = "Error loading data from server.";
+                    overallTotalSpan.textContent = "0";
+                    return;
+                }
+
+                const data = await res.json();
+                const raw = Array.isArray(data) ? data : [];
+
+                // Normalize:
+                //  - Take only entries with amount > 0
+                //  - Convert date to DD-MM-YYYY
+                entries = raw
+                    .filter(e => Number(e.amount) > 0)      // ignore pure items with no money
+                    .map(e => {
+                        const n = normalizeDate(e.date || "");
+                        return {
+                            name: e.name || "",
+                            mobile: e.mobile || "",
+                            amount: Number(e.amount) || 0,
+                            date: n.display,   // DD-MM-YYYY
+                            _sort: n.sortKey
+                        };
+                    });
+
+                render();
+            } catch (err) {
+                console.error("Network error while loading entries:", err);
+                emptyText.textContent = "Could not reach server. Please check if backend is running.";
+                overallTotalSpan.textContent = "0";
+            }
+        }
+
+        // Export all data to Excel (Date column DD-MM-YYYY)
+        exportBtn.addEventListener("click", function () {
+            if (!entries.length) {
+                alert("No data available to export.");
+                return;
+            }
+
+            const excelData = entries.map(e => ({
+                Date: (e.date || "").trim(),  // DD-MM-YYYY
+                Name: e.name || "",
+                Mobile: e.mobile || "",
+                Amount: Number(e.amount) || 0
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Collection");
+
+            const todayStr = todayDDMMYYYY(); // DD-MM-YYYY
+            const fileName = `daily_collection_${todayStr}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        });
+
+        // Initial load
+        loadEntriesFromServer();
+    </script>
+
+</body>
+
+</html>

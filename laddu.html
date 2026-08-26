@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ganesh Demo - Laddu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <!-- PWA manifest & theme -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ff8a00">
+
+    <!-- iOS (iPhone / iPad) PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="assets/images/logo-192.png">
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --text-dark: #222;
+            --text-muted: #777;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--orange);
+            background-color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--orange);
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 1rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* Hidden by default */
+        .card {
+            display: none;
+        }
+
+        .card.active {
+            display: block;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-input {
+            border-radius: 999px;
+            border: 1px solid #dcdcdc;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.9rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #e7e7e7;
+            color: #444;
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #c62828;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .date-group {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 0.85rem;
+            overflow: hidden;
+        }
+
+        .date-header {
+            padding: 0.6rem 0.9rem;
+            background-color: #fff8f1;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .date-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .date-total {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #c15c00;
+        }
+
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f4f4f4;
+            align-items: center;
+            column-gap: 0.5rem;
+        }
+
+        .entry-row:last-child {
+            border-bottom: none;
+        }
+
+        .entry-name {
+            font-weight: 500;
+        }
+
+        .entry-amount {
+            font-weight: 600;
+        }
+
+        .entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        .icon-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: 50%;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .icon-edit {
+            color: #1565c0;
+        }
+
+        .icon-delete {
+            color: #c62828;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #999;
+            padding: 0 0 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                align-items: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .entry-row {
+                grid-template-columns: 1fr auto;
+                grid-template-rows: auto auto;
+            }
+
+            .entry-amount {
+                text-align: right;
+            }
+
+            .entry-actions {
+                grid-column: span 2;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <button class="back-btn" type="button" onclick="window.location.href='special_list.html'">
+            ←
+        </button>
+        <img src="assets/images/logo.png" alt="Logo" class="logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+    <main class="container">
+        <section class="page-header">
+            <h2>Laddu List</h2>
+            <p>Laddu Auction</p>
+        </section>
+
+        <section class="summary-card" style="display: none;">
+            <div>
+                <div class="summary-title">Total Value (<span id="yearDisplay"></span>)</div>
+                <div class="summary-value">₹ <span id="totalAmount">0</span></div>
+            </div>
+        </section>
+
+        <button class="add-btn" id="toggleFormBtn" onclick="toggleForm()">
+            ➕ Add Laddu Winner
+        </button>
+
+        <section class="card" id="formCard">
+            <h3 id="formTitle">Add Laddu Entry</h3>
+            <form id="ladduForm" autocomplete="off">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" id="name" class="form-input" placeholder="Ex: Ramesh" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateInput" class="form-label">Date</label>
+                        <input type="date" id="dateInput" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 0.75rem;">
+                    <label for="amount" class="form-label">Amount (₹)</label>
+                    <input type="number" id="amount" class="form-input" placeholder="Ex: 5000">
+                </div>
+
+                <p class="error-text" id="errorText">Please enter name and date.</p>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Entry</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="entriesContainer">
+            <div class="empty-text" id="emptyText" style="text-align:center; padding: 2rem; color:#777;">No entries yet.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        © <span id="year"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <script>
+        const API_BASE = "https://wcyf-app.onrender.com";
+        document.getElementById("year").textContent = new Date().getFullYear();
+
+        const form = document.getElementById("ladduForm");
+        const nameInput = document.getElementById("name");
+        const amountInput = document.getElementById("amount");
+        const dateInput = document.getElementById("dateInput");
+        const errorText = document.getElementById("errorText");
+        const entriesContainer = document.getElementById("entriesContainer");
+        const emptyText = document.getElementById("emptyText");
+        const totalAmountSpan = document.getElementById("totalAmount");
+        const submitBtn = document.getElementById("submitBtn");
+        const formTitle = document.getElementById("formTitle");
+        const clearBtn = document.getElementById("clearBtn");
+        const toggleFormBtn = document.getElementById("toggleFormBtn");
+        const formCard = document.getElementById("formCard");
+        const yearDisplay = document.getElementById("yearDisplay");
+
+        let entries = [];
+        let editingIndex = null;
+        const category = "laddu";
+
+        // Get Year from URL or default to current
+        const urlParams = new URLSearchParams(window.location.search);
+        const yearParam = urlParams.get('year');
+        const currentYear = yearParam ? Number(yearParam) : new Date().getFullYear();
+
+        yearDisplay.textContent = currentYear;
+        // Update footer year
+        document.getElementById("year").textContent = currentYear;
+
+        function toggleForm() {
+            if (formCard.classList.contains("active")) {
+                formCard.classList.remove("active");
+                toggleFormBtn.textContent = "➕ Add Laddu Winner";
+            } else {
+                formCard.classList.add("active");
+                toggleFormBtn.textContent = "🔼 Hide Form";
+            }
+        }
+
+        function getTodayISO() {
+            return new Date().toISOString().split("T")[0];
+        }
+
+        function ddmmyyyyToISO(ddmmyyyy) {
+            if (!ddmmyyyy) return "";
+            const [d, m, y] = ddmmyyyy.split("-");
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDateDisplay(raw) {
+            if (!raw) return "";
+            if (/^\d{2}-\d{2}-\d{4}$/.test(raw)) return raw;
+            const parts = raw.split("-");
+            if (parts.length === 3) {
+                const [y, m, d] = parts;
+                return `${d}-${m}-${y}`;
+            }
+            return raw;
+        }
+
+        dateInput.value = getTodayISO();
+
+        function resetForm() {
+            nameInput.value = "";
+            amountInput.value = "";
+            dateInput.value = getTodayISO();
+            errorText.style.display = "none";
+            editingIndex = null;
+            submitBtn.textContent = "Add Entry";
+            formTitle.textContent = "Add Laddu Entry";
+        }
+
+        function updateTotal() {
+            const total = entries.reduce((sum, item) => sum + (item.amount || 0), 0);
+            totalAmountSpan.textContent = total.toString();
+        }
+
+        function renderEntries() {
+            entriesContainer.innerHTML = "";
+
+            if (entries.length === 0) {
+                emptyText.style.display = "block";
+                entriesContainer.appendChild(emptyText);
+                updateTotal();
+                return;
+            }
+
+            emptyText.style.display = "none";
+
+            // Group entries by date
+            const groupedEntries = entries.reduce((acc, entry, originalIndex) => {
+                const displayDate = formatDateDisplay(entry.date);
+                if (!acc[displayDate]) {
+                    acc[displayDate] = {
+                        total: 0,
+                        items: []
+                    };
+                }
+                acc[displayDate].total += (entry.amount || 0);
+                acc[displayDate].items.push({ ...entry, _originalIndex: originalIndex });
+                return acc;
+            }, {});
+
+            // Sort grouped dates (which are basically string keys) but rely on original sorting (descending usually works)
+
+            // To be precise with date sorting (for group headers):
+            const sortedDates = Object.keys(groupedEntries).sort((a, b) => {
+                const dateA = new Date(ddmmyyyyToISO(a));
+                const dateB = new Date(ddmmyyyyToISO(b));
+                return dateB - dateA;
+            });
+
+            sortedDates.forEach(date => {
+                const groupDiv = document.createElement("div");
+                groupDiv.className = "date-group";
+
+                // Group Header
+                const dateHeaderDiv = document.createElement("div");
+                dateHeaderDiv.className = "date-header";
+                dateHeaderDiv.innerHTML = `
+                    <div class="date-label">${date}</div>
+                    <div class="date-total">₹ ${groupedEntries[date].total}</div>
+                `;
+                groupDiv.appendChild(dateHeaderDiv);
+
+                // Group List Header 
+                const listHeaderDiv = document.createElement("div");
+                listHeaderDiv.style.cssText = "display: grid; grid-template-columns: 2fr 1.5fr 1fr; padding: 0.4rem 0.9rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); border-bottom: 1px solid #eee;";
+                listHeaderDiv.innerHTML = `
+                    <div>Name</div>
+                    <div>Amount</div>
+                    <div style="text-align:right;">Actions</div>
+                `;
+                groupDiv.appendChild(listHeaderDiv);
+
+                // Iterate over items for this date
+                groupedEntries[date].items.forEach((entry) => {
+                    const row = document.createElement("div");
+                    row.className = "entry-row";
+
+                    const nameDiv = document.createElement("div");
+                    nameDiv.className = "entry-name";
+                    nameDiv.textContent = entry.name;
+
+                    const amountDiv = document.createElement("div");
+                    amountDiv.className = "entry-amount";
+                    amountDiv.textContent = "₹ " + (entry.amount || 0);
+
+                    const actionsDiv = document.createElement("div");
+                    actionsDiv.className = "entry-actions";
+
+                    const editBtn = document.createElement("button");
+                    editBtn.className = "icon-btn icon-edit";
+                    editBtn.innerHTML = "✏️";
+                    editBtn.setAttribute("aria-label", "Edit");
+                    editBtn.onclick = () => editEntry(entry._originalIndex);
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "icon-btn icon-delete";
+                    deleteBtn.innerHTML = "🗑️";
+                    deleteBtn.setAttribute("aria-label", "Delete");
+                    deleteBtn.onclick = () => deleteEntry(entry._originalIndex);
+
+                    actionsDiv.append(editBtn, deleteBtn);
+                    row.append(nameDiv, amountDiv, actionsDiv);
+                    groupDiv.appendChild(row);
+                });
+
+                entriesContainer.appendChild(groupDiv);
+            });
+
+            updateTotal();
+        }
+
+        function editEntry(index) {
+            const password = prompt("Enter password to edit entry:");
+            if (password !== "GanesH123") {
+                alert("❌ Incorrect password");
+                return;
+            }
+
+            const entry = entries[index];
+            nameInput.value = entry.name;
+            amountInput.value = entry.amount;
+            dateInput.value = ddmmyyyyToISO(entry.date);
+            editingIndex = index;
+            submitBtn.textContent = "Update Entry";
+            formTitle.textContent = "Edit Entry";
+
+            // Show form if hidden
+            if (!formCard.classList.contains("active")) {
+                toggleForm();
+            }
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        async function deleteEntry(index) {
+            const password = prompt("Enter password to delete entry:");
+            if (password !== "GanesH123") {
+                alert("❌ Incorrect password");
+                return;
+            }
+
+            if (!confirm("Delete this entry?")) return;
+            const entry = entries[index];
+            try {
+                if (entry._id) {
+                    await fetch(`${API_BASE}/api/special/${entry._id}`, { method: "DELETE" });
+                }
+                loadEntries();
+            } catch (e) {
+                alert("Error deleting");
+            }
+        }
+
+        async function loadEntries() {
+            try {
+                const res = await fetch(`${API_BASE}/api/special?year=${currentYear}&category=${category}`);
+                if (res.ok) {
+                    entries = await res.json();
+
+                    // Sort entries descending by date (latest first)
+                    entries.sort((a, b) => {
+                        const dateA = new Date(ddmmyyyyToISO(a.date));
+                        const dateB = new Date(ddmmyyyyToISO(b.date));
+                        return dateB - dateA;
+                    });
+
+                    renderEntries();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const amount = amountInput.value.trim();
+            const selectedDate = dateInput.value;
+
+            if (!name || !selectedDate) {
+                errorText.style.display = "block";
+                return;
+            }
+
+            const [y, m, d] = selectedDate.split("-");
+            const date = `${d}-${m}-${y}`;
+
+            const payload = {
+                name,
+                amount: amount ? Number(amount) : 0,
+                date,
+                category: category,
+                year: currentYear
+            };
+
+            try {
+                let res;
+                if (editingIndex !== null) {
+                    const id = entries[editingIndex]._id;
+                    res = await fetch(`${API_BASE}/api/special/${id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await fetch(`${API_BASE}/api/special`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (res.ok) {
+                    resetForm();
+                    loadEntries();
+                } else {
+                    alert("Error saving");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Network error");
+            }
+        });
+
+        clearBtn.addEventListener("click", resetForm);
+        loadEntries();
+    </script>
+</body>
+
+</html>

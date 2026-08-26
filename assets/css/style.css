@@ -1,0 +1,161 @@
+/* Base theme */
+:root {
+    --orange: #ff8a00;
+    --orange-dark: #e67600;
+    --white: #ffffff;
+    --bg-light: #fafafa;
+    --border: #e5e5e5;
+    --text-dark: #222;
+    --text-muted: #777;
+    --shadow-soft: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background-color: var(--white);
+    color: var(--text-dark);
+    min-height: 100vh;
+}
+
+/* Common header (logo + title) */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+}
+
+.logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--orange);
+}
+
+.title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Page container */
+.container {
+    padding: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Simple card base */
+.card {
+    background-color: var(--bg-light);
+    border-radius: 16px;
+    padding: 1rem 1rem 0.9rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #999;
+    padding: 0 0 1rem;
+}
+
+/* Buttons */
+.btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+}
+
+.btn-secondary {
+    background-color: #e7e7e7;
+    color: #444;
+}
+
+.btn:active {
+    transform: translateY(1px) scale(0.99);
+    box-shadow: none;
+}
+
+/* Form basics */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.form-input {
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    font-size: 0.9rem;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: var(--orange);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+}
+
+/* Error text */
+.error-text {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: #d11a2a;
+}
+
+/* Icon buttons (edit / delete / share / tick) */
+.icon-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background-color 0.15s, transform 0.08s;
+}
+
+.icon-btn:active {
+    transform: scale(0.92);
+}
+
+.icon-btn:hover {
+    background-color: #f3f3f3;
+}
+
+/* Utility text */
+.text-muted {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}

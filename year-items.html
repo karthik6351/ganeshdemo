@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Items - Ganesh Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --orange: #ff8a00;
+            --orange-dark: #e67600;
+            --white: #ffffff;
+            --text-dark: #222;
+            --text-muted: #666;
+            --shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background-color: var(--white);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--orange);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid var(--orange);
+            object-fit: cover;
+        }
+
+        .title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.16);
+        }
+
+        .list-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #eee;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            padding: 0.8rem 1rem;
+            background: #fcfcfc;
+            border-bottom: 1px solid #eee;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .list-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #f5f5f5;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .export-btn {
+            display: block;
+            width: fit-content;
+            margin: 2rem auto;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(255, 138, 0, 0.3);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .loading,
+        .error,
+        .empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <button class="back-btn" onclick="window.history.back()">←</button>
+        <img src="assets/images/logo.png" class="logo" alt="Logo">
+        <div class="title">Ganesh Demo</div>
+    </header>
+
+    <main class="container">
+        <h2 id="pageTitle">... Items</h2>
+        <p>List of item contributions for <span id="yearDisplay">...</span></p>
+
+        <input type="text" id="searchInput" class="search-input" placeholder="Search items...">
+
+        <section class="list-card">
+            <div class="list-header">
+                <div>Name</div>
+                <div>Items</div>
+            </div>
+            <div id="listContainer">
+                <div class="loading">Loading items...</div>
+            </div>
+        </section>
+
+        <button class="export-btn" id="exportBtn">📊 Export Items</button>
+    </main>
+
+    <footer class="footer">
+        © <span id="currentYear"></span> Ganesh Demo
+        <br>
+        <a href="https://mangolabz.vercel.app/" target="_blank" style="color: inherit; text-decoration: none; font-weight: bold; display: block; margin-top: 8px;">DESIGNED by mango Labz</a>
+    </footer>
+
+    <script>
+        document.getElementById("currentYear").textContent = new Date().getFullYear();
+        const API_BASE = "https://wcyf-app.onrender.com";
+
+        // Get year from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const yearParam = urlParams.get('year');
+        const year = yearParam ? Number(yearParam) : new Date().getFullYear();
+
+        // Update UI
+        document.title = `${year} Items - Ganesh Demo`;
+        document.getElementById("pageTitle").textContent = `${year} Items`;
+        document.getElementById("yearDisplay").textContent = year;
+
+        let itemsList = [];
+
+        async function loadData() {
+            const listContainer = document.getElementById("listContainer");
+
+            try {
+                const res = await fetch(`${API_BASE}/api/money?year=${year}`);
+                if (!res.ok) throw new Error("Failed to load data");
+
+                const data = await res.json();
+
+                // Filter only items with non-empty "items" field
+                itemsList = (data || []).filter(item => (item.items || "").trim() !== "");
+
+                // Helper to parse DD-MM-YYYY to Date
+                function parseDate(dateStr) {
+                    if (!dateStr) return new Date(0);
+                    const [d, m, y] = dateStr.split("-");
+                    return new Date(`${y}-${m}-${d}`);
+                }
+
+                // Sort descending by date
+                itemsList.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
+                renderList(itemsList);
+
+            } catch (err) {
+                console.error(err);
+                listContainer.innerHTML = `<div class="error">Error loading data.</div>`;
+            }
+        }
+
+        function renderList(data) {
+            const listContainer = document.getElementById("listContainer");
+
+            if (data.length === 0) {
+                listContainer.innerHTML = `<div class="empty">No item contributions found for ${year}.</div>`;
+                return;
+            }
+
+            let html = "";
+            data.forEach(item => {
+                html += `
+                    <div class="list-item">
+                        <div class="item-name">${item.name || "Unknown"}</div>
+                        <div class="item-desc">${item.items}</div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        // Search
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = itemsList.filter(item =>
+                (item.name || "").toLowerCase().includes(term) ||
+                (item.items || "").toLowerCase().includes(term)
+            );
+            renderList(filtered);
+        });
+
+        // Export
+        document.getElementById("exportBtn").addEventListener("click", () => {
+            if (itemsList.length === 0) {
+                alert("No items to export.");
+                return;
+            }
+            const exportData = itemsList.map(item => ({
+                Name: item.name,
+                Items: item.items,
+                Date: item.date || ""
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, `${year} Items`);
+            XLSX.writeFile(wb, `${year}_Items.xlsx`);
+        });
+
+        loadData();
+    </script>
+</body>
+
+</html>
